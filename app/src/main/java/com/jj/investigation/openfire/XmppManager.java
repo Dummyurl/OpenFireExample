@@ -12,17 +12,15 @@ public class XmppManager {
 
     private static XMPPTCPConnection xmppConnection;
 
-    // 域名：IP地址
+    // 域名：IP地址(电脑的IPv4)
     private static final String HOST = "192.168.1.156";
-    // 端口号(固定，就是5222)
+    // 端口号(客户端链接服务端的端口号，这里固定，就是5222，可以在OpenFire的管理界面中查看到)
     private static final int PORT = 5222;
     // 服务器名称：openfire管理页面中的服务器名称
     private static final String SERVICE_NAME = "pc201501230929";
 
     /**
      * 获取连接对象
-     *
-     * @return
      */
     public static XMPPTCPConnection getConnection() {
         if (xmppConnection == null) {
@@ -33,7 +31,6 @@ public class XmppManager {
 
     /**
      * 打开连接
-     *
      */
     private static XMPPTCPConnection openConnection() {
         if (!isConnected()) {
@@ -48,7 +45,7 @@ public class XmppManager {
             try {
                 xmppConnection.connect();
             } catch (Exception e) {
-                System.out.println("错误原因XMPPTCPConnection = " + e.toString());
+                System.out.println("XMPPTCPConnection-open failed:" + e.toString());
                 e.printStackTrace();
             }
         }

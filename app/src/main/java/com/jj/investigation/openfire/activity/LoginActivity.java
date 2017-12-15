@@ -1,5 +1,6 @@
 package com.jj.investigation.openfire.activity;
 
+import android.content.Intent;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
@@ -10,6 +11,7 @@ import android.widget.EditText;
 import com.jj.investigation.openfire.R;
 import com.jj.investigation.openfire.XmppManager;
 import com.jj.investigation.openfire.utils.ToastUtils;
+import com.jj.investigation.openfire.view.LoadingDialog;
 
 import org.jivesoftware.smack.packet.Presence;
 import org.jivesoftware.smack.tcp.XMPPTCPConnection;
@@ -23,12 +25,14 @@ public class LoginActivity extends AppCompatActivity {
 
     private EditText et_username;
     private EditText et_password;
+    private LoadingDialog loadingDialog;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         initView();
+        loadingDialog = new LoadingDialog(this);
     }
 
     private void initView() {
@@ -48,10 +52,15 @@ public class LoginActivity extends AppCompatActivity {
     private class LoginTask extends AsyncTask<String, Void, Boolean> {
 
         @Override
+        protected void onPreExecute() {
+            super.onPreExecute();
+            loadingDialog.showDialog("正在登录...");
+        }
+
+        @Override
         protected Boolean doInBackground(String... params) {
             XMPPTCPConnection connection = XmppManager.getConnection();
             try {
-                // 登录
                 connection.login(params[0], params[1]);
                 connection.sendStanza(new Presence(Presence.Type.available));
             } catch (Exception e) {
@@ -63,12 +72,16 @@ public class LoginActivity extends AppCompatActivity {
         }
 
         @Override
-        protected void onPostExecute(Boolean result) {
-            if (result) {
+        protected void onPostExecute(Boolean loginStatus) {
+            loadingDialog.hideDialog();
+            if (loginStatus) {
                 ToastUtils.showShortToastSafe("登录成功");
+                startActivity(new Intent(LoginActivity.this, MainActivity.class));
             } else {
                 ToastUtils.showShortToastSafe("登录失败");
             }
         }
     }
+
+
 }
