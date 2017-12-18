@@ -60,8 +60,9 @@ public class RegisterActivity extends AppCompatActivity {
         @Override
         protected Boolean doInBackground(String... params) {
             //新版本注册
-            XMPPTCPConnection connection = XmppManager.getConnection();
+            final XMPPTCPConnection connection = XmppManager.getConnection();
             final AccountManager accountManager = AccountManager.getInstance(connection);
+            accountManager.sensitiveOperationOverInsecureConnection(true);
             try {
                 accountManager.createAccount(params[0], params[1]);
             } catch (Exception e) {
@@ -83,6 +84,5 @@ public class RegisterActivity extends AppCompatActivity {
                 ToastUtils.showShortToastSafe("注册失败");
             }
         }
-
     }
 }

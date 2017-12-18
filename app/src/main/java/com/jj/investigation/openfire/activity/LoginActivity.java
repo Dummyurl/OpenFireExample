@@ -30,7 +30,7 @@ public class LoginActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_main);
+        setContentView(R.layout.activity_login);
         initView();
         loadingDialog = new LoadingDialog(this);
     }
@@ -66,6 +66,9 @@ public class LoginActivity extends AppCompatActivity {
             } catch (Exception e) {
                 e.printStackTrace();
                 Log.e("登录失败：", e.toString());
+                if ("org.jivesoftware.smack.SmackException$AlreadyLoggedInException: Client is already logged in".equals(e.toString())) {
+                    startActivity(new Intent(LoginActivity.this, MainActivity.class));
+                }
                 return false;
             }
             return true;
