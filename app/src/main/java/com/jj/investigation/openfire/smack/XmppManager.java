@@ -1,4 +1,4 @@
-package com.jj.investigation.openfire;
+package com.jj.investigation.openfire.smack;
 
 import org.jivesoftware.smack.ConnectionConfiguration;
 import org.jivesoftware.smack.tcp.XMPPTCPConnection;
