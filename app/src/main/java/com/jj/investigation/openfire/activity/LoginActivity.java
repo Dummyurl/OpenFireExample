@@ -6,11 +6,12 @@ import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.view.View;
-import android.widget.EditText;
+import android.widget.TextView;
 
 import com.jj.investigation.openfire.R;
 import com.jj.investigation.openfire.XmppManager;
 import com.jj.investigation.openfire.utils.ToastUtils;
+import com.jj.investigation.openfire.view.AutoEditText;
 import com.jj.investigation.openfire.view.LoadingDialog;
 
 import org.jivesoftware.smack.packet.Presence;
@@ -23,8 +24,8 @@ import org.jivesoftware.smack.tcp.XMPPTCPConnection;
 
 public class LoginActivity extends AppCompatActivity {
 
-    private EditText et_username;
-    private EditText et_password;
+    private AutoEditText et_username;
+    private AutoEditText et_password;
     private LoadingDialog loadingDialog;
 
     @Override
@@ -36,14 +37,26 @@ public class LoginActivity extends AppCompatActivity {
     }
 
     private void initView() {
-        et_username = (EditText) findViewById(R.id.et_username);
-        et_password = (EditText) findViewById(R.id.et_password);
+        TextView tv_title = (TextView) findViewById(R.id.tv_title);
+        tv_title.setText("登录");
+        et_username = (AutoEditText) findViewById(R.id.et_account);
+        et_password = (AutoEditText) findViewById(R.id.et_pwd);
     }
 
+    /**
+     * 登录的点击事件
+     */
     public void login(View v) {
         LoginTask loginTask = new LoginTask();
         loginTask.execute(et_username.getText().toString(), et_password
                 .getText().toString());
+    }
+
+    /**
+     * 注册的点击事件
+     */
+    public void register(View v) {
+        startActivity(new Intent(this, RegisterActivity.class));
     }
 
     /**

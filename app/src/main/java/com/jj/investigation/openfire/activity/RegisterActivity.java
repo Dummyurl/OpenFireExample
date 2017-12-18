@@ -4,17 +4,20 @@ import android.content.Intent;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
-import android.util.Log;
 import android.view.View;
-import android.widget.EditText;
+import android.widget.TextView;
 
 import com.jj.investigation.openfire.R;
 import com.jj.investigation.openfire.XmppManager;
 import com.jj.investigation.openfire.utils.ToastUtils;
+import com.jj.investigation.openfire.view.AutoEditText;
 import com.jj.investigation.openfire.view.LoadingDialog;
 
 import org.jivesoftware.smack.tcp.XMPPTCPConnection;
 import org.jivesoftware.smackx.iqregister.AccountManager;
+
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  * 注册
@@ -23,8 +26,9 @@ import org.jivesoftware.smackx.iqregister.AccountManager;
 
 public class RegisterActivity extends AppCompatActivity {
 
-    private EditText et_username;
-    private EditText et_password;
+    private AutoEditText et_account;
+    private AutoEditText et_pwd;
+    private AutoEditText et_email;
     private LoadingDialog loadingDialog;
 
     @Override
@@ -32,21 +36,22 @@ public class RegisterActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_register);
         initView();
-        loadingDialog = new LoadingDialog(this);
     }
 
     private void initView() {
-        et_username = (EditText) findViewById(R.id.et_username);
-        et_password = (EditText) findViewById(R.id.et_password);
+        TextView tv_title = (TextView) findViewById(R.id.tv_title);
+        tv_title.setText("注册");
+        loadingDialog = new LoadingDialog(this);
+
+        et_account = (AutoEditText) findViewById(R.id.et_account);
+        et_pwd = (AutoEditText) findViewById(R.id.et_pwd);
+        et_email = (AutoEditText) findViewById(R.id.et_email);
     }
 
-    /**
-     * 注册
-     */
-    public void register(View v) {
-        RegisterTask registerTask = new RegisterTask();
-        registerTask.execute(et_username.getText().toString(), et_password
-                .getText().toString());
+    public void login(View v) {
+        RegisterTask loginTask = new RegisterTask();
+        loginTask.execute(et_account.getText().toString(), et_pwd.getText()
+                .toString(), et_email.getText().toString());
     }
 
     class RegisterTask extends AsyncTask<String, Void, Boolean> {
@@ -54,34 +59,39 @@ public class RegisterActivity extends AppCompatActivity {
         @Override
         protected void onPreExecute() {
             super.onPreExecute();
-            loadingDialog.showDialog("正在注册...");
+            if (loadingDialog != null) {
+                loadingDialog.showDialog("注册中...");
+            }
         }
 
         @Override
         protected Boolean doInBackground(String... params) {
-            //新版本注册
-            final XMPPTCPConnection connection = XmppManager.getConnection();
-            final AccountManager accountManager = AccountManager.getInstance(connection);
+            // 新版本注册
+            XMPPTCPConnection connection = XmppManager.getConnection();
+            AccountManager accountManager = AccountManager
+                    .getInstance(connection);
             accountManager.sensitiveOperationOverInsecureConnection(true);
             try {
-                accountManager.createAccount(params[0], params[1]);
+                // 附加属性
+                Map<String, String> attributes = new HashMap<String, String>();
+                attributes.put("email", params[2]);
+                accountManager.createAccount(params[0], params[1], attributes);
             } catch (Exception e) {
                 e.printStackTrace();
-                Log.e("注册失败：", e.toString());
                 return false;
             }
             return true;
         }
 
         @Override
-        protected void onPostExecute(Boolean registerStatus) {
-            super.onPostExecute(registerStatus);
-            loadingDialog.hideDialog();
-            if (registerStatus) {
-                ToastUtils.showShortToastSafe("注册成功");
-                startActivity(new Intent(RegisterActivity.this, LoginActivity.class));
-            } else {
+        protected void onPostExecute(Boolean result) {
+            super.onPostExecute(result);
+            if (loadingDialog != null) {
+                loadingDialog.hideDialog();
+            }
+            if (!result) {
                 ToastUtils.showShortToastSafe("注册失败");
+                startActivity(new Intent(RegisterActivity.this, LoginActivity.class));
             }
         }
     }

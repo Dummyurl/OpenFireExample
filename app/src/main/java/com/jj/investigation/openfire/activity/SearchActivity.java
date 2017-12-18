@@ -3,6 +3,7 @@ package com.jj.investigation.openfire.activity;
 import android.app.Activity;
 import android.os.AsyncTask;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.View;
 import android.widget.ArrayAdapter;
 import android.widget.EditText;
@@ -42,7 +43,7 @@ public class SearchActivity extends Activity {
 
     // 搜索好友
     public void search(View v) {
-        String keyword = et_search.getText().toString();
+        String keyword =  et_search.getText().toString();
         if (keyword.isEmpty()) {
             ToastUtils.showShortToastSafe("不能为空");
             return;
@@ -58,58 +59,61 @@ public class SearchActivity extends Activity {
      */
     class SearchTask extends AsyncTask<String, Void, Boolean> {
 
-        private ArrayAdapter<String> arrayAdapter;
+
+        private ArrayAdapter<String> adapter;
 
         @Override
         protected Boolean doInBackground(String... params) {
-            // 搜索？
-            XMPPTCPConnection connection = XmppManager.getConnection();
+            boolean searchResult = false;
 
             try {
-                ReportedData data = null;
-
+                // 获取连接对象
+                XMPPTCPConnection connection = XmppManager.getConnection();
+                // 声明接收数据的类型
+                ReportedData data;
                 // 创建搜索管理器
-                UserSearchManager usersearchManager = new UserSearchManager(
-                        connection);
-                // 得到一个搜索表单
-                // 指定搜索服务器名称(标记当前执行的搜索服务)
-                // 前缀：代表你的搜索服务类型
-                String searchService = "search." + XmppManager.SERVICE_NAME;
-                Form f = usersearchManager.getSearchForm(searchService);
-
-                // 设置条件表单
-                Form answer = f.createAnswerForm();
-                answer.setAnswer("Username", true);
-                answer.setAnswer("search", params[0]);
-
-                // 发起搜索，获取搜索结果
-                data = usersearchManager
-                        .getSearchResults(answer, searchService);
-
-                // 解析搜索结果
-                ArrayList<String> userList = new ArrayList<String>();
-                for (ReportedData.Row row : data.getRows()) {
-                    // 有两个值:分别是jid和username
+                UserSearchManager userSearchManager = new UserSearchManager(connection);
+                // 指定搜索服务器的名称
+                String serviceName = "search." + XmppManager.SERVICE_NAME;
+                // 创建搜索表单
+                Form searchForm = userSearchManager.getSearchForm(serviceName);
+                // 设置返回数据的条件表单
+                Form answerForm = searchForm.createAnswerForm();
+                answerForm.setAnswer("Username", true);
+                answerForm.setAnswer("search", params[0]);
+                // 发起搜索并获取搜索结果
+                data = userSearchManager.getSearchResults(answerForm, serviceName);
+                if (data == null) {
+                    return searchResult;
+                }
+                // 解析数据结果
+                ArrayList<String> userList = new ArrayList<>();
+                for (ReportedData.Row row:data.getRows()) {
                     String username = row.getValues("Username").get(0);
-                    // 后面我们需要根据jid添加好友
                     userList.add(username);
                 }
-                arrayAdapter = new ArrayAdapter<String>(SearchActivity.this,
+                adapter = new ArrayAdapter<>(SearchActivity.this,
                         android.R.layout.simple_list_item_1,
                         android.R.id.text1, userList);
+                if (userList.size() > 0) {
+                    searchResult = true;
+                }
             } catch (Exception e) {
                 e.printStackTrace();
+                Log.e("搜索联系人错误信息：" + getClass().getName(), e.toString());
             }
 
-            return null;
+            return searchResult;
         }
 
         @Override
         protected void onPostExecute(Boolean result) {
             super.onPostExecute(result);
             // ui线程更新
-            if (arrayAdapter != null) {
-                listView.setAdapter(arrayAdapter);
+            if (result && adapter != null) {
+                listView.setAdapter(adapter);
+            } else {
+                ToastUtils.showShortToastSafe("无相关联系人");
             }
         }
     }
