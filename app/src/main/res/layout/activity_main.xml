@@ -1,9 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:orientation="vertical">
+
+    <include layout="@layout/common_title_layout"/>
 
     <ExpandableListView
         android:id="@+id/elv_friend"
@@ -11,14 +12,5 @@
         android:layout_height="0dp"
         android:layout_weight="1"
         android:cacheColorHint="@color/colorAccent"/>
-
-
-    <Button
-        android:layout_width="match_parent"
-        android:layout_height="60dp"
-        android:text="搜索好友"
-        android:onClick="search"
-        android:textSize="18sp"
-        android:gravity="center"/>
 
 </LinearLayout>

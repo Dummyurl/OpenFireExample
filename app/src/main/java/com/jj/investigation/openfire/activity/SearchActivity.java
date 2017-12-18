@@ -28,8 +28,7 @@ import java.util.ArrayList;
 
 /**
  * 联系人列表
- *
- * @author Dream
+ * Created by ${R.js} on 2017/12/18.
  */
 public class SearchActivity extends Activity {
     private ListView listView;
@@ -114,8 +113,6 @@ public class SearchActivity extends Activity {
 
     /**
      * 搜索任务
-     *
-     * @author Dream
      */
     class SearchTask extends AsyncTask<String, Void, Boolean> {
 

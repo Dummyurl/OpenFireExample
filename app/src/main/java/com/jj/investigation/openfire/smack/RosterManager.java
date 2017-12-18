@@ -27,6 +27,7 @@ public class RosterManager {
 
     /**
      * 接受对方添加好友的请求
+     *
      * @param jid 对方的唯一标识
      */
     public void accept(String jid) {
@@ -43,7 +44,8 @@ public class RosterManager {
 
     /**
      * 拒绝对方添加好友的请求
-     * @param jid
+     *
+     * @param jid 对方的唯一标识
      */
     public void refuse(String jid) {
         // 发送拒绝的状态消息

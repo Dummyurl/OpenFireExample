@@ -12,11 +12,12 @@ import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.view.View;
 import android.widget.ExpandableListView;
+import android.widget.TextView;
 
 import com.jj.investigation.openfire.R;
+import com.jj.investigation.openfire.adapter.ContactsListAdapter;
 import com.jj.investigation.openfire.smack.RosterManager;
 import com.jj.investigation.openfire.smack.XmppManager;
-import com.jj.investigation.openfire.adapter.ContactsListAdapter;
 
 import org.jivesoftware.smack.SmackException;
 import org.jivesoftware.smack.StanzaListener;
@@ -30,7 +31,11 @@ import org.jxmpp.util.XmppStringUtils;
 
 import java.util.Collection;
 
-public class MainActivity extends AppCompatActivity {
+/**
+ * 首页
+ * Created by ${R.js} on 2017/12/15.
+ */
+public class MainActivity extends AppCompatActivity implements View.OnClickListener {
 
     private ExpandableListView elv_friend;
     private ContactsListAdapter adapter;
@@ -51,12 +56,14 @@ public class MainActivity extends AppCompatActivity {
                     showSubscribeDialog((String) msg.obj);
                     break;
                 case SUBSCRIBED:
+                    showSubscribedDialog((String) msg.obj);
                     break;
                 default:
                     break;
             }
         }
     };
+
 
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
@@ -68,6 +75,13 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void initView() {
+        TextView tv_title = (TextView) findViewById(R.id.tv_title);
+        tv_title.setText("搜索好友");
+        TextView tv_right = (TextView) findViewById(R.id.tv_right);
+        tv_right.setVisibility(View.VISIBLE);
+        tv_right.setText("添加");
+        tv_right.setOnClickListener(this);
+
         elv_friend = (ExpandableListView) findViewById(R.id.elv_friend);
     }
 
@@ -78,6 +92,10 @@ public class MainActivity extends AppCompatActivity {
         new GetContactsTask().execute();
     }
 
+    @Override
+    public void onClick(View v) {
+        startActivity(new Intent(this, SearchActivity.class));
+    }
 
     /**
      * 获取联系人列表
@@ -100,10 +118,6 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
-    public void search(View view) {
-        startActivity(new Intent(this, SearchActivity.class));
-    }
-
     /**
      * 接收好友请求的监听
      */
@@ -121,6 +135,12 @@ public class MainActivity extends AppCompatActivity {
                             Message message = handler.obtainMessage(SUBSCRIB, presence.getFrom());
                             handler.sendMessage(message);
                         }
+                    } else if (presence.getType().name()
+                            .equals(Presence.Type.subscribed.name())) {
+                        // 对方同意了我的请求，并且回执这个请求，所以需要处理（刷新好友列表）
+                        Message message = handler.obtainMessage(
+                                SUBSCRIBED, presence.getFrom());
+                        handler.sendMessage(message);
                     }
                 }
             }
@@ -162,5 +182,42 @@ public class MainActivity extends AppCompatActivity {
                 });
         final AlertDialog dialog = builder.create();
         dialog.show();
+    }
+
+    /**
+     * 别人同意添加我为好友的通知，添加完毕后，刷新我的好友列表
+     *
+     * @param jid 对方的唯一标识
+     */
+    private void showSubscribedDialog(String jid) {
+        // 刷新数据
+        initData();
+        String nickName = XmppStringUtils.parseLocalpart(jid);
+        AlertDialog.Builder builder = new AlertDialog.Builder(this);
+        builder.setTitle("温馨提示").setMessage("恭喜你，" + nickName + "已添加你为好友!")
+                .setPositiveButton("确定", new DialogInterface.OnClickListener() {
+
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        dialog.dismiss();
+                    }
+                })
+                .setNegativeButton("取消", new DialogInterface.OnClickListener() {
+
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        dialog.dismiss();
+                    }
+                });
+        final AlertDialog dialog = builder.create();
+        dialog.show();
+    }
+
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        // 退出登录
+        XmppManager.getConnection().instantShutdown();
     }
 }
