@@ -30,13 +30,11 @@ public class ContactsListAdapter extends BaseExpandableListAdapter {
     // 每个分组下面的联系人列表
     private List<List<ContactChild>> childList;
     private LayoutInflater layoutInflater;
-    private Context context;
 
 
     public ContactsListAdapter(Context context) {
-        this.context = context;
         this.groupList = new ArrayList<>();
-        this.childList = new ArrayList<List<ContactChild>>();
+        this.childList = new ArrayList<>();
         layoutInflater = LayoutInflater.from(context);
     }
 
@@ -87,11 +85,9 @@ public class ContactsListAdapter extends BaseExpandableListAdapter {
     @Override
     public View getChildView(int groupPosition, int childPosition, boolean isLastChild, View convertView, ViewGroup parent) {
         convertView = layoutInflater.inflate(R.layout.item_contact_child, parent, false);
-        TextView tv_child_name = (TextView) convertView.findViewById(R.id.tv_child_name);
-        TextView tv_child_desc = (TextView) convertView.findViewById(R.id.tv_child_desc);
+        TextView tv_name = (TextView) convertView.findViewById(R.id.tv_name);
         ContactChild child = getChild(groupPosition, childPosition);
-        tv_child_name.setText(child.getUserName());
-        tv_child_desc.setText(child.getDesc());
+        tv_name.setText(child.getUserName());
         return convertView;
     }
 
@@ -104,14 +100,13 @@ public class ContactsListAdapter extends BaseExpandableListAdapter {
      * 设置联系人数据
      */
     public void setGroups(Collection<RosterGroup> groups) {
-        System.out.println("groups = " + groups.toString());
         if (groups != null && groups.size() != 0) {
-            ContactGroup group = null;
-            ContactChild child = null;
+            ContactGroup group;
+            ContactChild child;
             // 自己定义的好友列表
-            List<ContactChild> contactChilList = null;
+            List<ContactChild> contactChilList;
             // Smack的好友数据列表
-            List<RosterEntry> entryList = null;
+            List<RosterEntry> entryList;
             for (RosterGroup rosterGroup : groups) {
                 group = new ContactGroup();
                 group.setGroupName(rosterGroup.getName());
@@ -119,10 +114,8 @@ public class ContactsListAdapter extends BaseExpandableListAdapter {
 
                 contactChilList = new ArrayList<>();
                 entryList = rosterGroup.getEntries();
-                System.out.println("entrylist = " + entryList.toString());
                 for (RosterEntry entry : entryList) {
-                    child = new ContactChild(entry.getName(), "这个没有", "");
-                    System.out.println("entrytt = " + entry.getName() + " type = " + entry.getType().name());
+                    child = new ContactChild(entry.getName(), "", "");
                     contactChilList.add(child);
                 }
                 childList.add(contactChilList);

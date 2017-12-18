@@ -9,7 +9,7 @@ import android.view.View;
 import android.widget.TextView;
 
 import com.jj.investigation.openfire.R;
-import com.jj.investigation.openfire.XmppManager;
+import com.jj.investigation.openfire.smack.XmppManager;
 import com.jj.investigation.openfire.utils.ToastUtils;
 import com.jj.investigation.openfire.view.AutoEditText;
 import com.jj.investigation.openfire.view.LoadingDialog;
@@ -72,6 +72,7 @@ public class LoginActivity extends AppCompatActivity {
 
         @Override
         protected Boolean doInBackground(String... params) {
+            boolean loginStatus = true;
             XMPPTCPConnection connection = XmppManager.getConnection();
             try {
                 connection.login(params[0], params[1]);
@@ -79,19 +80,19 @@ public class LoginActivity extends AppCompatActivity {
             } catch (Exception e) {
                 e.printStackTrace();
                 Log.e("登录失败：", e.toString());
+
                 if ("org.jivesoftware.smack.SmackException$AlreadyLoggedInException: Client is already logged in".equals(e.toString())) {
                     startActivity(new Intent(LoginActivity.this, MainActivity.class));
                 }
-                return false;
+                loginStatus = false;
             }
-            return true;
+            return loginStatus;
         }
 
         @Override
         protected void onPostExecute(Boolean loginStatus) {
             loadingDialog.hideDialog();
             if (loginStatus) {
-                ToastUtils.showShortToastSafe("登录成功");
                 startActivity(new Intent(LoginActivity.this, MainActivity.class));
             } else {
                 ToastUtils.showShortToastSafe("登录失败");

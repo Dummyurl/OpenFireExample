@@ -8,7 +8,7 @@ import android.view.View;
 import android.widget.TextView;
 
 import com.jj.investigation.openfire.R;
-import com.jj.investigation.openfire.XmppManager;
+import com.jj.investigation.openfire.smack.XmppManager;
 import com.jj.investigation.openfire.utils.ToastUtils;
 import com.jj.investigation.openfire.view.AutoEditText;
 import com.jj.investigation.openfire.view.LoadingDialog;
@@ -89,9 +89,11 @@ public class RegisterActivity extends AppCompatActivity {
             if (loadingDialog != null) {
                 loadingDialog.hideDialog();
             }
-            if (!result) {
-                ToastUtils.showShortToastSafe("注册失败");
+            if (result) {
+                ToastUtils.showShortToastSafe("注册成功");
                 startActivity(new Intent(RegisterActivity.this, LoginActivity.class));
+            } else {
+                ToastUtils.showShortToastSafe("注册失败");
             }
         }
     }

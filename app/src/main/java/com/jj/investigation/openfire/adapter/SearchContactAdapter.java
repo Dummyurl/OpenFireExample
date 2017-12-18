@@ -71,7 +71,7 @@ public class SearchContactAdapter extends BaseAdapter {
         TextView tv_name;
 
         public ViewHolder(View convertView) {
-            tv_name = (TextView) convertView.findViewById(R.id.tv_child_name);
+            tv_name = (TextView) convertView.findViewById(R.id.tv_name);
         }
     }
 }
