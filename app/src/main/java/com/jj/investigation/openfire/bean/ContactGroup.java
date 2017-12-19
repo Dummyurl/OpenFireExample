@@ -15,7 +15,17 @@ public class ContactGroup {
     private String groupDesc;
     // 该分组下的好友列表
     private List<ContactChild> contactChildList;
+    // 该群组的成员数两
+    private int count;
 
+
+    public int getCount() {
+        return count;
+    }
+
+    public void setCount(int count) {
+        this.count = count;
+    }
 
     public String getGroupName() {
         return groupName;
@@ -39,5 +49,16 @@ public class ContactGroup {
 
     public void setContactChildList(List<ContactChild> contactChildList) {
         this.contactChildList = contactChildList;
+    }
+
+
+    @Override
+    public String toString() {
+        return "ContactGroup{" +
+                "groupName='" + groupName + '\'' +
+                ", groupDesc='" + groupDesc + '\'' +
+                ", contactChildList=" + contactChildList +
+                ", count=" + count +
+                '}';
     }
 }

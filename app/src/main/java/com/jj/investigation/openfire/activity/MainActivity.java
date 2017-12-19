@@ -74,6 +74,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         addFriendListener();
     }
 
+
     private void initView() {
         TextView tv_title = (TextView) findViewById(R.id.tv_title);
         tv_title.setText("搜索好友");
@@ -81,6 +82,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         tv_right.setVisibility(View.VISIBLE);
         tv_right.setText("添加");
         tv_right.setOnClickListener(this);
+        tv_title.setOnClickListener(this);
 
         elv_friend = (ExpandableListView) findViewById(R.id.elv_friend);
     }
@@ -94,7 +96,15 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
     @Override
     public void onClick(View v) {
-        startActivity(new Intent(this, SearchActivity.class));
+        switch (v.getId()) {
+            case R.id.tv_title:
+                initData();
+                break;
+            case R.id.tv_right:
+                startActivity(new Intent(this, SearchActivity.class));
+                break;
+        }
+
     }
 
     /**
@@ -107,7 +117,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             XMPPTCPConnection connection = XmppManager.getConnection();
             Roster roster = Roster.getInstanceFor(connection);
             Collection<RosterGroup> groups = roster.getGroups();
-            adapter.setGroups(groups);
+            adapter.setGroups(roster, groups);
             return null;
         }
 
@@ -165,6 +175,8 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
                     @Override
                     public void onClick(DialogInterface dialog, int which) {
+                        // 互为好友
+                        RosterManager.get().addFriend(nickName, "Friends", null);
                         // 同意
                         RosterManager.get().accept(jid);
                         // 刷新列表

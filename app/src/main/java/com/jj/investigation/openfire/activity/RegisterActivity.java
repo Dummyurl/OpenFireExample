@@ -4,6 +4,7 @@ import android.content.Intent;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
+import android.util.Log;
 import android.view.View;
 import android.widget.TextView;
 
@@ -73,11 +74,17 @@ public class RegisterActivity extends AppCompatActivity {
             accountManager.sensitiveOperationOverInsecureConnection(true);
             try {
                 // 附加属性
-                Map<String, String> attributes = new HashMap<String, String>();
-                attributes.put("email", params[2]);
-                accountManager.createAccount(params[0], params[1], attributes);
+                if (!(params[2] == null || params[2] == "")) {
+                    accountManager.createAccount(params[0], params[1]);
+                } else {
+                    Map<String, String> attributes = new HashMap<>();
+                    attributes.put("email", params[2]);
+                    accountManager.createAccount(params[0], params[1], attributes);
+                }
+
             } catch (Exception e) {
                 e.printStackTrace();
+                Log.e("注册异常：", e.toString());
                 return false;
             }
             return true;

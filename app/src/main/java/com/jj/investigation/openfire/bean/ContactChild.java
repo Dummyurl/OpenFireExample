@@ -8,16 +8,13 @@ package com.jj.investigation.openfire.bean;
 public class ContactChild {
     // 用户名
     private String userName;
+    // 用户简介
     private String desc;
     // 用户唯一标志
     private String jid;
-    /**
-     * 当前用户好友列表中的好友的关系：
-     * to：
-     * both：两者互为好友
-     * from：代表当前登录用户对该好友已经发送了好友申请，所以在好友列表中会显示这个好友，但是对方还未同意
-     */
-    private String type;
+    // 是否在线
+    private boolean isOnlion;
+
 
     public ContactChild(String userName, String desc, String jid) {
         super();
@@ -26,6 +23,14 @@ public class ContactChild {
         this.jid = jid;
     }
 
+
+    public boolean isOnlion() {
+        return isOnlion;
+    }
+
+    public void setOnlion(boolean onlion) {
+        isOnlion = onlion;
+    }
 
     public String getDesc() {
         return desc;
@@ -53,7 +58,11 @@ public class ContactChild {
 
     @Override
     public String toString() {
-        return "ContactModel [userName=" + userName + ", jid=" + jid + "]";
+        return "ContactChild{" +
+                "userName='" + userName + '\'' +
+                ", desc='" + desc + '\'' +
+                ", jid='" + jid + '\'' +
+                ", isOnlion=" + isOnlion +
+                '}';
     }
-
 }

@@ -8,7 +8,11 @@ import org.jivesoftware.smack.SmackException;
 import org.jivesoftware.smack.packet.Presence;
 import org.jivesoftware.smack.roster.Roster;
 import org.jivesoftware.smack.roster.RosterEntry;
+import org.jivesoftware.smack.roster.RosterGroup;
 import org.jxmpp.util.XmppStringUtils;
+
+import java.util.Collection;
+import java.util.List;
 
 /**
  * 添加好友管理器
@@ -80,18 +84,21 @@ public class RosterManager {
             isSubscribed = rosterEntry.getGroups().size() == 0;
         }
 
-
         // 创建添加好友信息
-        if (isSubscribed && rosterEntry == null) {
+        if (isSubscribed) {
             try {
                 roster.createEntry(jid, nickName, new String[]{grouName});
             } catch (Exception e) {
                 e.printStackTrace();
                 Log.e("请求添加好友异常：", e.toString());
             }
-            listener.sendSuccess();
+            if (listener != null) {
+                listener.sendSuccess();
+            }
         } else {
-            listener.sendFailed();
+            if (listener != null) {
+                listener.sendFailed();
+            }
         }
     }
 
@@ -100,11 +107,16 @@ public class RosterManager {
      */
     public boolean isAdd(String jid) {
         Roster roster = Roster.getInstanceFor(XmppManager.getConnection());
-        RosterEntry entry = roster.getEntry(jid);
-        if (entry == null) {
-            return true;
-        } else {
-            return false;
+        Collection<RosterGroup> groups = roster.getGroups();
+        // 遍历所有的群组，看当前jid有没有在群组里面，也就是查看是否有该联系人
+        for (RosterGroup group : groups) {
+            List<RosterEntry> entries = group.getEntries();
+            for (RosterEntry entry : entries) {
+                if (entry.getUser().equals(jid)) {
+                    return false;
+                }
+            }
         }
+        return true;
     }
 }

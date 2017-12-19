@@ -2,15 +2,16 @@
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="50dp"
-    android:orientation="vertical">
+    android:orientation="vertical" >
 
     <LinearLayout
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
+        android:layout_height="match_parent"
         android:background="@drawable/item_selector"
         android:gravity="center_vertical"
         android:orientation="horizontal"
-        android:padding="5dp">
+        android:paddingLeft="10dp"
+        android:paddingRight="10dp" >
 
         <ImageView
             android:id="@+id/iv"
@@ -19,30 +20,31 @@
             android:scaleType="centerCrop"
             android:src="@drawable/app_icon" />
 
-        <TextView
-            android:id="@+id/tv_name"
+        <LinearLayout
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginLeft="10dp"
-            android:text="小Q聊天机器人"
-            android:maxLines="2"
-            android:ellipsize="end"
-            android:textColor="#000000"
-            android:textSize="16sp" />
+            android:orientation="vertical" >
 
-        <TextView
-            android:id="@+id/tv_online"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="[在线]"
-            android:visibility="gone"
-            android:layout_marginLeft="5dp"
-            android:textSize="14sp"
-            android:textColor="#11cd6e"/>
+            <TextView
+                android:id="@+id/tv_name"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:ellipsize="end"
+                android:maxLines="2"
+                android:text="小Q聊天机器人"
+                android:textColor="#000000"
+                android:textSize="16sp" />
+
+            <TextView
+                android:id="@+id/tv_online"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="2dp"
+                android:text="[在线]"
+                android:textColor="@color/online_status"
+                android:textSize="14sp" />
+        </LinearLayout>
     </LinearLayout>
 
-    <View
-        android:layout_width="match_parent"
-        android:layout_height="0.1dp"
-        android:background="#D0D0D0" />
 </LinearLayout>
