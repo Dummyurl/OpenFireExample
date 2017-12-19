@@ -9,7 +9,6 @@ import android.os.Handler;
 import android.os.Message;
 import android.support.annotation.Nullable;
 import android.support.v7.app.AppCompatActivity;
-import android.util.Log;
 import android.view.View;
 import android.widget.ExpandableListView;
 import android.widget.TextView;
@@ -44,19 +43,23 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     private static final int SUBSCRIB = 1;
     // 对方同意添加我为好友
     private static final int SUBSCRIBED = 2;
+    // 更新好友状态
+    private static final int UPDATE_STATUS = 3;
 
     private Handler handler = new Handler() {
         @Override
         public void handleMessage(Message msg) {
             super.handleMessage(msg);
-            Log.e("接收到发送的消息", msg.what + ",  = " + msg.obj.toString());
             switch (msg.what) {
                 case SUBSCRIB:
-                    // 接受好友请求
                     showSubscribeDialog((String) msg.obj);
                     break;
                 case SUBSCRIBED:
                     showSubscribedDialog((String) msg.obj);
+                    break;
+                case UPDATE_STATUS:
+                    System.out.println("刷新--handler");
+                    adapter.notifyDataSetChanged();
                     break;
                 default:
                     break;
@@ -129,28 +132,35 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     }
 
     /**
-     * 接收好友请求的监听
+     * 监听：
+     * 对方同意添加好友，对方发起好友的申请、好友上线、下线等
+     * 因为监听的方法是在子线程中执行的，所以更新UI的方法通过handler在主线程中更新
      */
     private void addFriendListener() {
         XMPPTCPConnection connection = XmppManager.getConnection();
         connection.addAsyncStanzaListener(new StanzaListener() { // 处理消息
             @Override
             public void processPacket(Stanza packet) throws SmackException.NotConnectedException {
-                Log.e("好友申请：", "packet = " + packet.toString());
                 // 只对好友申请状态消息处理
                 if (packet instanceof Presence) {
                     Presence presence = (Presence) packet;
-                    if (presence.getType().name().equals(Presence.Type.subscribe.name())) {
+                    if (presence.getType().name().equals(Presence.Type.subscribe.name())) { // 对方添加我为好友
                         if (RosterManager.get().isAdd(presence.getFrom())) {
                             Message message = handler.obtainMessage(SUBSCRIB, presence.getFrom());
                             handler.sendMessage(message);
                         }
-                    } else if (presence.getType().name()
-                            .equals(Presence.Type.subscribed.name())) {
+                    } else if (presence.getType().name().equals(Presence.Type.subscribed.name())) { // 对方同意加我为好友
                         // 对方同意了我的请求，并且回执这个请求，所以需要处理（刷新好友列表）
                         Message message = handler.obtainMessage(
                                 SUBSCRIBED, presence.getFrom());
                         handler.sendMessage(message);
+                    } else if (presence.getType().name().equals(Presence.Type.available.name())) { // 好友上线
+                        // 如果是好友上线或者下线，则先在adapter中更新数据源，然后通过handler在UI线程更新UI
+                        adapter.upDataContactStatus(presence);
+                        handler.sendEmptyMessage(UPDATE_STATUS);
+                    } else if (presence.getType().name().equals(Presence.Type.unavailable.name())) { // 好友下线
+                        adapter.upDataContactStatus(presence);
+                        handler.sendEmptyMessage(UPDATE_STATUS);
                     }
                 }
             }

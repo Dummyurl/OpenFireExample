@@ -97,7 +97,6 @@ public class ContactsListAdapter extends BaseExpandableListAdapter {
             for (ContactChild child : group.getContactChildList()) {
                 if (child.isOnlion()) {
                     onLionNumber++;
-                    System.out.println("在线状态 = " + onLionNumber);
                 }
             }
         }
@@ -128,7 +127,7 @@ public class ContactsListAdapter extends BaseExpandableListAdapter {
 
     @Override
     public boolean isChildSelectable(int groupPosition, int childPosition) {
-        return false;
+        return true;
     }
 
     /**
@@ -159,6 +158,21 @@ public class ContactsListAdapter extends BaseExpandableListAdapter {
                 }
                 childList.add(contactChilList);
                 group.setContactChildList(contactChilList);
+            }
+        }
+    }
+
+    /**
+     * 更新好友的在线状态
+     */
+    public void upDataContactStatus(Presence presence) {
+        // 遍历联系人
+        for (List<ContactChild> list : childList) {
+            for (ContactChild child : list) {
+                // 如果是我的好友，则设置状态
+                if (presence.getFrom().contains(child.getJid())) {
+                    child.setOnlion(presence.isAvailable());
+                }
             }
         }
     }
