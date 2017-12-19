@@ -27,15 +27,15 @@ repositories {
 }
 
 dependencies {
-    compile fileTree(dir: 'libs', include: ['*.jar'])
+    compile fileTree(include: ['*.jar'], dir: 'libs')
     androidTestCompile('com.android.support.test.espresso:espresso-core:2.2.2', {
         exclude group: 'com.android.support', module: 'support-annotations'
     })
     compile 'com.android.support:appcompat-v7:25.3.1'
     testCompile 'junit:junit:4.12'
-
     // OpenFire的依赖
-    compile "org.igniterealtime.smack:smack-android-extensions:4.1.0"
-    compile "org.igniterealtime.smack:smack-experimental:4.1.0"
-    compile "org.igniterealtime.smack:smack-tcp:4.1.0"
+    compile 'org.igniterealtime.smack:smack-android-extensions:4.1.0'
+    compile 'org.igniterealtime.smack:smack-experimental:4.1.0'
+    compile 'org.igniterealtime.smack:smack-tcp:4.1.0'
+    compile 'com.google.code.gson:gson:2.2.4'
 }

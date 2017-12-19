@@ -34,7 +34,7 @@ import java.util.Collection;
  * 首页
  * Created by ${R.js} on 2017/12/15.
  */
-public class MainActivity extends AppCompatActivity implements View.OnClickListener {
+public class MainActivity extends AppCompatActivity implements View.OnClickListener, ExpandableListView.OnChildClickListener {
 
     private ExpandableListView elv_friend;
     private ContactsListAdapter adapter;
@@ -95,6 +95,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         adapter = new ContactsListAdapter(this);
         elv_friend.setAdapter(adapter);
         new GetContactsTask().execute();
+        elv_friend.setOnChildClickListener(this);
     }
 
     @Override
@@ -108,6 +109,15 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 break;
         }
 
+    }
+
+    // 联系人点击事件
+    @Override
+    public boolean onChildClick(ExpandableListView parent, View v, int groupPosition, int childPosition, long id) {
+        Intent intent = new Intent(this, ChatActivity.class);
+        intent.putExtra("jid", adapter.getChild(groupPosition, childPosition).getJid());
+        startActivity(intent);
+        return true;
     }
 
     /**
