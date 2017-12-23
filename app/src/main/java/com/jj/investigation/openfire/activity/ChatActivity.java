@@ -136,6 +136,7 @@ public class ChatActivity extends AppCompatActivity implements ChatManagerListen
 
             System.out.println("");
 
+            // 要发送的消息，发送的消息需要别人来接收，所以发送时OprationType的值应该为Receiver而不是send
             MyMessage remoteMessage = new MyMessage(currentUser, jid, content,
                     DateUtils.newDate(), MyMessage.OprationType.Receiver.getType());
             chat.sendMessage(remoteMessage.toJson());

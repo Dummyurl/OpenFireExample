@@ -9,12 +9,15 @@ import android.os.Handler;
 import android.os.Message;
 import android.support.annotation.Nullable;
 import android.support.v7.app.AppCompatActivity;
+import android.util.Log;
 import android.view.View;
 import android.widget.ExpandableListView;
 import android.widget.TextView;
 
 import com.jj.investigation.openfire.R;
 import com.jj.investigation.openfire.adapter.ContactsListAdapter;
+import com.jj.investigation.openfire.bean.ServeTest;
+import com.jj.investigation.openfire.retrofit.RetrofitUtil;
 import com.jj.investigation.openfire.smack.RosterManager;
 import com.jj.investigation.openfire.smack.XmppManager;
 
@@ -29,6 +32,10 @@ import org.jivesoftware.smack.tcp.XMPPTCPConnection;
 import org.jxmpp.util.XmppStringUtils;
 
 import java.util.Collection;
+
+import rx.Subscriber;
+import rx.android.schedulers.AndroidSchedulers;
+import rx.schedulers.Schedulers;
 
 /**
  * 首页
@@ -96,6 +103,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         elv_friend.setAdapter(adapter);
         new GetContactsTask().execute();
         elv_friend.setOnChildClickListener(this);
+//        serviceTest();
     }
 
     @Override
@@ -251,5 +259,30 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         super.onDestroy();
         // 退出登录
         XmppManager.getConnection().instantShutdown();
+    }
+
+    /**
+     * 本地服务器接口测试
+     */
+    public void serviceTest() {
+        RetrofitUtil.createApi().test()
+                .subscribeOn(Schedulers.io())
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribe(new Subscriber<ServeTest>() {
+                    @Override
+                    public void onCompleted() {
+
+                    }
+
+                    @Override
+                    public void onError(Throwable e) {
+                        Log.e("测试错误：", e.toString());
+                    }
+
+                    @Override
+                    public void onNext(ServeTest s) {
+                        Log.e("测试成功：", s.toString());
+                    }
+                });
     }
 }

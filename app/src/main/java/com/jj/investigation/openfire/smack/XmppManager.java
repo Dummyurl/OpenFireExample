@@ -13,7 +13,7 @@ public class XmppManager {
     private static XMPPTCPConnection xmppConnection;
 
     // 域名：IP地址(电脑的IPv4)
-    public static final String HOST = "192.168.1.156";
+    public static final String HOST = "192.168.1.163";
     // 端口号(客户端链接服务端的端口号，这里固定，就是5222，可以在OpenFire的管理界面中查看到)
     public static final int PORT = 5222;
     // 服务器名称：openfire管理页面中的服务器名称

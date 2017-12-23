@@ -9,6 +9,8 @@ import android.view.View;
 import android.widget.TextView;
 
 import com.jj.investigation.openfire.R;
+import com.jj.investigation.openfire.bean.User;
+import com.jj.investigation.openfire.retrofit.RetrofitUtil;
 import com.jj.investigation.openfire.smack.XmppManager;
 import com.jj.investigation.openfire.utils.ToastUtils;
 import com.jj.investigation.openfire.view.AutoEditText;
@@ -16,6 +18,10 @@ import com.jj.investigation.openfire.view.LoadingDialog;
 
 import org.jivesoftware.smack.packet.Presence;
 import org.jivesoftware.smack.tcp.XMPPTCPConnection;
+
+import rx.Subscriber;
+import rx.android.schedulers.AndroidSchedulers;
+import rx.schedulers.Schedulers;
 
 /**
  * 登录
@@ -50,6 +56,28 @@ public class LoginActivity extends AppCompatActivity {
         LoginTask loginTask = new LoginTask();
         loginTask.execute(et_username.getText().toString(), et_password
                 .getText().toString());
+
+        requestLogin();
+    }
+
+    private void requestLogin() {
+        RetrofitUtil.createApi().login(et_username.getText().toString().trim(),
+                et_password.getText().toString().trim())
+                .subscribeOn(Schedulers.io())
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribe(new Subscriber<User>() {
+                    @Override
+                    public void onCompleted() {}
+                    @Override
+                    public void onError(Throwable e) {
+                        Log.e("登录失败", e.toString());
+                    }
+
+                    @Override
+                    public void onNext(User user) {
+                        Log.e("登录成功", user.toString());
+                    }
+                });
     }
 
     /**
@@ -81,10 +109,9 @@ public class LoginActivity extends AppCompatActivity {
                 e.printStackTrace();
                 Log.e("登录失败：", e.toString());
 
-                if ("org.jivesoftware.smack.SmackException$AlreadyLoggedInException: Client is already logged in".equals(e.toString())) {
-                    startActivity(new Intent(LoginActivity.this, MainActivity.class));
+                if (!"org.jivesoftware.smack.SmackException$AlreadyLoggedInException: Client is already logged in".equals(e.toString())) {
+                    loginStatus = false;
                 }
-                loginStatus = false;
             }
             return loginStatus;
         }
