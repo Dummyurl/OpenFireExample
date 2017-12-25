@@ -43,6 +43,8 @@ public class ChatActivity extends AppCompatActivity implements ChatManagerListen
     private XMPPTCPConnection connection;
     private Chat chat;
     private String currentUser;
+    private String from_uid;
+    private String to_uid;
     // 消息集合
     private List<MyMessage> messageList = new ArrayList<>();
     private ChatAdapter adapter;
@@ -62,7 +64,6 @@ public class ChatActivity extends AppCompatActivity implements ChatManagerListen
             }
         }
     };
-
 
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
@@ -134,16 +135,26 @@ public class ChatActivity extends AppCompatActivity implements ChatManagerListen
             messageList.add(localMessage);
             adapter.notifyDataSetChanged();
 
-            System.out.println("");
-
             // 要发送的消息，发送的消息需要别人来接收，所以发送时OprationType的值应该为Receiver而不是send
             MyMessage remoteMessage = new MyMessage(currentUser, jid, content,
                     DateUtils.newDate(), MyMessage.OprationType.Receiver.getType());
             chat.sendMessage(remoteMessage.toJson());
             et_input_sms.setText("");
+
+            pushRecord(from_uid, to_uid);
         } catch (Exception e) {
             e.printStackTrace();
             Log.e("发送消息异常：", e.toString());
         }
+    }
+
+    /**
+     * 向后台加添一条聊天记录
+     * @param from_uid
+     * @param to_uid
+     */
+    private void pushRecord(String from_uid, String to_uid) {
+
+
     }
 }

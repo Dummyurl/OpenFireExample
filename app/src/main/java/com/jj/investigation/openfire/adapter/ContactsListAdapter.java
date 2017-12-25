@@ -9,8 +9,9 @@ import android.widget.ImageView;
 import android.widget.TextView;
 
 import com.jj.investigation.openfire.R;
-import com.jj.investigation.openfire.bean.ContactChild;
 import com.jj.investigation.openfire.bean.ContactGroup;
+import com.jj.investigation.openfire.bean.User;
+import com.jj.investigation.openfire.utils.Utils;
 
 import org.jivesoftware.smack.packet.Presence;
 import org.jivesoftware.smack.roster.Roster;
@@ -31,7 +32,7 @@ public class ContactsListAdapter extends BaseExpandableListAdapter {
     // 分组列表
     private List<ContactGroup> groupList;
     // 每个分组下面的联系人列表
-    private List<List<ContactChild>> childList;
+    private List<List<User>> childList;
     private LayoutInflater layoutInflater;
 
 
@@ -57,7 +58,7 @@ public class ContactsListAdapter extends BaseExpandableListAdapter {
     }
 
     @Override
-    public ContactChild getChild(int groupPosition, int childPosition) {
+    public User getChild(int groupPosition, int childPosition) {
         return childList == null ? null : childList.get(groupPosition).get(childPosition);
     }
 
@@ -94,7 +95,7 @@ public class ContactsListAdapter extends BaseExpandableListAdapter {
         int onLionNumber = 0;
 
         if (group.getContactChildList() != null && group.getContactChildList().size() > 0) {
-            for (ContactChild child : group.getContactChildList()) {
+            for (User child : group.getContactChildList()) {
                 if (child.isOnlion()) {
                     onLionNumber++;
                 }
@@ -113,8 +114,14 @@ public class ContactsListAdapter extends BaseExpandableListAdapter {
         convertView = layoutInflater.inflate(R.layout.item_contact_child, parent, false);
         final TextView tv_name = (TextView) convertView.findViewById(R.id.tv_name);
         final TextView tv_online = (TextView) convertView.findViewById(R.id.tv_online);
-        final ContactChild child = getChild(groupPosition, childPosition);
-        tv_name.setText(child.getUserName());
+        final User child = getChild(groupPosition, childPosition);
+        // 如果有昵称，则设置昵称，如果没有则设置用户名称（用户名称就是注册时使用的账号）
+        if (!Utils.isNull(child.getNickname())) {
+            tv_name.setText(child.getNickname());
+        } else {
+            tv_name.setText(child.getUsername());
+        }
+
         if (child.isOnlion()) {
             tv_online.setText("[在线]");
             tv_online.setSelected(true);
@@ -136,9 +143,9 @@ public class ContactsListAdapter extends BaseExpandableListAdapter {
     public void setGroups(Roster roster, Collection<RosterGroup> groups) {
         if (groups != null && groups.size() != 0) {
             ContactGroup group;
-            ContactChild child;
+            User child;
             // 自己定义的好友列表
-            List<ContactChild> contactChilList;
+            List<User> contactChilList;
             // Smack的好友数据列表
             List<RosterEntry> entryList;
             for (RosterGroup rosterGroup : groups) {
@@ -150,7 +157,9 @@ public class ContactsListAdapter extends BaseExpandableListAdapter {
                 contactChilList = new ArrayList<>();
                 entryList = rosterGroup.getEntries();
                 for (RosterEntry entry : entryList) {
-                    child = new ContactChild(entry.getName(), "", entry.getUser());
+                    child = new User();
+                    child.setUsername(entry.getName());
+                    child.setJid(entry.getUser());
                     // 在线状态
                     Presence presence = roster.getPresence(entry.getUser());
                     child.setOnlion(presence.isAvailable());
@@ -167,8 +176,8 @@ public class ContactsListAdapter extends BaseExpandableListAdapter {
      */
     public void upDataContactStatus(Presence presence) {
         // 遍历联系人
-        for (List<ContactChild> list : childList) {
-            for (ContactChild child : list) {
+        for (List<User> list : childList) {
+            for (User child : list) {
                 // 如果是我的好友，则设置状态
                 if (presence.getFrom().contains(child.getJid())) {
                     child.setOnlion(presence.isAvailable());

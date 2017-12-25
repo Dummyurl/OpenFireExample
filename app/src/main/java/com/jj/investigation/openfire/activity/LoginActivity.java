@@ -9,7 +9,7 @@ import android.view.View;
 import android.widget.TextView;
 
 import com.jj.investigation.openfire.R;
-import com.jj.investigation.openfire.bean.User;
+import com.jj.investigation.openfire.bean.ServletData;
 import com.jj.investigation.openfire.retrofit.RetrofitUtil;
 import com.jj.investigation.openfire.smack.XmppManager;
 import com.jj.investigation.openfire.utils.ToastUtils;
@@ -60,35 +60,15 @@ public class LoginActivity extends AppCompatActivity {
         requestLogin();
     }
 
-    private void requestLogin() {
-        RetrofitUtil.createApi().login(et_username.getText().toString().trim(),
-                et_password.getText().toString().trim())
-                .subscribeOn(Schedulers.io())
-                .observeOn(AndroidSchedulers.mainThread())
-                .subscribe(new Subscriber<User>() {
-                    @Override
-                    public void onCompleted() {}
-                    @Override
-                    public void onError(Throwable e) {
-                        Log.e("登录失败", e.toString());
-                    }
-
-                    @Override
-                    public void onNext(User user) {
-                        Log.e("登录成功", user.toString());
-                    }
-                });
-    }
-
     /**
-     * 注册的点击事件
+     * 去注册的点击事件
      */
     public void register(View v) {
         startActivity(new Intent(this, RegisterActivity.class));
     }
 
     /**
-     * 登录任务
+     * 登录任务：openfire登录
      */
     private class LoginTask extends AsyncTask<String, Void, Boolean> {
 
@@ -127,4 +107,32 @@ public class LoginActivity extends AppCompatActivity {
         }
     }
 
+
+    /**
+     * 自己平台的登录
+     */
+    private void requestLogin() {
+        RetrofitUtil.createApi().login(et_username.getText().toString().trim(),
+                et_password.getText().toString().trim())
+                .subscribeOn(Schedulers.io())
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribe(new Subscriber<ServletData>() {
+                    @Override
+                    public void onCompleted() {}
+                    @Override
+                    public void onError(Throwable e) {
+                        Log.e("登录失败", e.toString());
+                    }
+
+                    @Override
+                    public void onNext(ServletData data) {
+
+                        if (data.getCode() == 200) {
+                            Log.e("注册成功", data.toString());
+                        } else {
+                            Log.e("注册失败", data.toString());
+                        }
+                    }
+                });
+    }
 }

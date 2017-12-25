@@ -14,7 +14,7 @@ public class ContactGroup {
     // 分组描述
     private String groupDesc;
     // 该分组下的好友列表
-    private List<ContactChild> contactChildList;
+    private List<User> contactChildList;
     // 该群组的成员数两
     private int count;
 
@@ -43,14 +43,13 @@ public class ContactGroup {
         this.groupDesc = groupDesc;
     }
 
-    public List<ContactChild> getContactChildList() {
+    public List<User> getContactChildList() {
         return contactChildList;
     }
 
-    public void setContactChildList(List<ContactChild> contactChildList) {
+    public void setContactChildList(List<User> contactChildList) {
         this.contactChildList = contactChildList;
     }
-
 
     @Override
     public String toString() {

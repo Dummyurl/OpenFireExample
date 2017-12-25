@@ -9,6 +9,8 @@ import android.view.View;
 import android.widget.TextView;
 
 import com.jj.investigation.openfire.R;
+import com.jj.investigation.openfire.bean.ServletData;
+import com.jj.investigation.openfire.retrofit.RetrofitUtil;
 import com.jj.investigation.openfire.smack.XmppManager;
 import com.jj.investigation.openfire.utils.ToastUtils;
 import com.jj.investigation.openfire.view.AutoEditText;
@@ -19,6 +21,10 @@ import org.jivesoftware.smackx.iqregister.AccountManager;
 
 import java.util.HashMap;
 import java.util.Map;
+
+import rx.Subscriber;
+import rx.android.schedulers.AndroidSchedulers;
+import rx.schedulers.Schedulers;
 
 /**
  * 注册
@@ -49,12 +55,17 @@ public class RegisterActivity extends AppCompatActivity {
         et_email = (AutoEditText) findViewById(R.id.et_email);
     }
 
-    public void login(View v) {
+    public void register(View v) {
         RegisterTask loginTask = new RegisterTask();
         loginTask.execute(et_account.getText().toString(), et_pwd.getText()
                 .toString(), et_email.getText().toString());
+
+        requestRegister();
     }
 
+    /**
+     * Openfire注册
+     */
     class RegisterTask extends AsyncTask<String, Void, Boolean> {
 
         @Override
@@ -103,5 +114,34 @@ public class RegisterActivity extends AppCompatActivity {
                 ToastUtils.showShortToastSafe("注册失败");
             }
         }
+    }
+
+    /**
+     * 自己平台的注册
+     */
+    public void requestRegister() {
+        final String jid = et_account.getText().toString().trim() + "@" + XmppManager.SERVICE_NAME;
+        RetrofitUtil.createApi().regist(et_account.getText().toString().trim(),
+                et_pwd.getText().toString().trim(), et_email.getText().toString().trim(), jid)
+                .subscribeOn(Schedulers.io())
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribe(new Subscriber<ServletData>() {
+                    @Override
+                    public void onCompleted() {}
+                    @Override
+                    public void onError(Throwable e) {
+                        Log.e("注册失败", e.toString());
+                    }
+
+                    @Override
+                    public void onNext(ServletData data) {
+
+                        if (data.getCode() == 200) {
+                            Log.e("注册成功", data.toString());
+                        } else {
+                            Log.e("注册失败", data.toString());
+                        }
+                    }
+                });
     }
 }

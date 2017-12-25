@@ -7,7 +7,7 @@ package com.jj.investigation.openfire.impl;
 
 public interface TaskListener {
 
-    void taskSucess(String... params);
-    void taskFailed(String... params);
+    void taskSucess(Object... params);
+    void taskFailed(Object... params);
 
 }
