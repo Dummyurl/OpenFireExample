@@ -1,5 +1,7 @@
 package com.jj.investigation.openfire.bean;
 
+import com.jj.investigation.openfire.utils.Utils;
+
 import java.io.Serializable;
 
 /**
@@ -9,7 +11,7 @@ import java.io.Serializable;
 public class User implements Serializable {
 
     // 用户ID
-    private int id;
+    private String id;
     // 该用户在OpenFire中的jid（他是用户的唯一标识）
     private String jid;
     // 注册使用的账号，一般是手机号（也可以是其他）
@@ -35,7 +37,7 @@ public class User implements Serializable {
     }
 
     public String getJid() {
-        return jid;
+        return Utils.isNull(jid) ? "" : jid;
     }
 
     public void setJid(String jid) {
@@ -43,7 +45,7 @@ public class User implements Serializable {
     }
 
     public String getNickname() {
-        return nickname;
+        return Utils.isNull(nickname) ? "" : nickname;
     }
 
     public void setNickname(String nickname) {
@@ -51,23 +53,23 @@ public class User implements Serializable {
     }
 
     public String getUser_img() {
-        return user_img;
+        return Utils.isNull(user_img) ? "" : user_img;
     }
 
     public void setUser_img(String user_img) {
         this.user_img = user_img;
     }
 
-    public int getId() {
-        return id;
+    public String getId() {
+        return Utils.isNull(id) ? "" : id;
     }
 
-    public void setId(int id) {
+    public void setId(String id) {
         this.id = id;
     }
 
     public String getUsername() {
-        return username;
+        return Utils.isNull(username) ? "" : username;
     }
 
     public void setUsername(String username) {
@@ -75,7 +77,7 @@ public class User implements Serializable {
     }
 
     public String getPlainPassword() {
-        return plainPassword;
+        return Utils.isNull(plainPassword) ? "" : plainPassword;
     }
 
     public void setPlainPassword(String plainPassword) {
@@ -83,7 +85,7 @@ public class User implements Serializable {
     }
 
     public String getDesc() {
-        return desc;
+        return Utils.isNull(desc) ? "" : desc;
     }
 
     public void setDesc(String desc) {

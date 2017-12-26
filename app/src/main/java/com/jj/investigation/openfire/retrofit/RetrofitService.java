@@ -1,8 +1,10 @@
 package com.jj.investigation.openfire.retrofit;
 
 import com.jj.investigation.openfire.bean.ServletData;
+import com.jj.investigation.openfire.bean.User;
 import com.jj.investigation.openfire.utils.Constants;
 
+import java.util.ArrayList;
 import java.util.Map;
 
 import okhttp3.RequestBody;
@@ -23,7 +25,7 @@ public interface RetrofitService {
     // 登录
     @FormUrlEncoded
     @POST(Constants.LOGIN)
-    Observable<ServletData> login(@Field("username") String username,
+    Observable<ServletData<User>> login(@Field("username") String username,
                                   @Field("password") String plainPassword);
 
 
@@ -44,8 +46,8 @@ public interface RetrofitService {
 
     // 查询聊天页面的用户资料
     @FormUrlEncoded
-    @POST(Constants.REGIST)
-    Observable<ServletData> getChatUsersInfo(@Field("uids") String uids);
+    @POST(Constants.CHAT_USERS_INFO)
+    Observable<ServletData<ArrayList<User>>> getChatUsersInfo(@Field("jids") String uids);
 
 }
 

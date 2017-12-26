@@ -13,8 +13,25 @@ import com.jj.investigation.openfire.AppApplication;
 
 public class Utils {
 
+    /**
+     * 获取ApplicationContext
+     */
     public static Context getContext() {
         return AppApplication.getApplication();
+    }
+
+    /**
+     * 获取当前登录的用户ID:自己平台的user_id
+     */
+    public static String getUserId() {
+        return ShareValue.getInstance(getContext()).getStringValue(Constants.SP_UID);
+    }
+
+    /**
+     * 获取当前登录的用户的jid：在OpenFire的jid
+     */
+    public static String getJid() {
+        return ShareValue.getInstance(getContext()).getStringValue(Constants.SP_JID);
     }
 
     /**

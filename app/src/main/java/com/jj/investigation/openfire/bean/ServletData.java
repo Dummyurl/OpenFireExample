@@ -4,12 +4,12 @@ package com.jj.investigation.openfire.bean;
  * 查询后返回给客户端的JavaBean对象
  * Created by ${R.js} on 2017/12/25.
  */
-public class ServletData {
+public class ServletData<T> {
 
     private int code;
     private String msg;
     private String type;
-    private Object data;
+    private T data;
 
 
     public String getType() {
@@ -38,15 +38,13 @@ public class ServletData {
         return this;
     }
 
-    public Object getData() {
+    public T getData() {
         return data;
     }
 
-    public ServletData setData(Object data) {
+    public void setData(T data) {
         this.data = data;
-        return this;
     }
-
 
     @Override
     public String toString() {

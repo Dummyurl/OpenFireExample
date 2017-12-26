@@ -14,8 +14,13 @@ import com.google.gson.Gson;
 import com.jj.investigation.openfire.R;
 import com.jj.investigation.openfire.adapter.ChatAdapter;
 import com.jj.investigation.openfire.bean.MyMessage;
+import com.jj.investigation.openfire.bean.ServletData;
+import com.jj.investigation.openfire.bean.User;
+import com.jj.investigation.openfire.retrofit.RetrofitService;
+import com.jj.investigation.openfire.retrofit.RetrofitUtil;
 import com.jj.investigation.openfire.smack.XmppManager;
 import com.jj.investigation.openfire.utils.DateUtils;
+import com.jj.investigation.openfire.utils.Utils;
 
 import org.jivesoftware.smack.chat.Chat;
 import org.jivesoftware.smack.chat.ChatManager;
@@ -28,8 +33,14 @@ import org.jxmpp.util.XmppStringUtils;
 import java.util.ArrayList;
 import java.util.List;
 
+import rx.Subscriber;
+import rx.android.schedulers.AndroidSchedulers;
+import rx.schedulers.Schedulers;
+
 /**
  * 聊天界面
+ * 使用当前用户和对方的jid是为了聊天使用，OpenFire只认识jid。
+ * 根据jid从自己的平台查询对应的用户，拿到用户在自己平台的信息，这个是在聊天界面显示时使用
  * Created by ${R.js} on 2017/12/19.
  */
 
@@ -45,6 +56,7 @@ public class ChatActivity extends AppCompatActivity implements ChatManagerListen
     private String currentUser;
     private String from_uid;
     private String to_uid;
+    private RetrofitService api;
     // 消息集合
     private List<MyMessage> messageList = new ArrayList<>();
     private ChatAdapter adapter;
@@ -56,7 +68,6 @@ public class ChatActivity extends AppCompatActivity implements ChatManagerListen
             super.handleMessage(msg);
             switch (msg.what) {
                 case MESSAGE_RECEIVE:
-                    System.out.println("刷新列表--handler");
                     adapter.notifyDataSetChanged();
                     break;
                 default:
@@ -80,17 +91,20 @@ public class ChatActivity extends AppCompatActivity implements ChatManagerListen
     }
 
     private void initData() {
-        // 获取对方的ID以及名称
+        api = RetrofitUtil.createApi();
+        // 获取对方的jid以及名称
         jid = getIntent().getStringExtra("jid");
         name = XmppStringUtils.parseLocalpart(jid);
         tv_title.setText(name);
+
+        queryUserInfoAccordingToJid();
 
         adapter = new ChatAdapter(this, messageList);
         lv_message_chat.setAdapter(adapter);
 
         // 创建会话
         connection = XmppManager.getConnection();
-        // 获取当前用户id
+        // 获取当前用户jid
         currentUser = connection.getUser();
         // 获取聊天管理器
         ChatManager chatManager = ChatManager.getInstanceFor(connection);
@@ -98,6 +112,51 @@ public class ChatActivity extends AppCompatActivity implements ChatManagerListen
         chat = chatManager.createChat(jid);
         // 会话创建成功的监听
         chatManager.addChatListener(this);
+    }
+
+    /**
+     * 根据jid查询用户的信息：
+     * 自己和对方的信息
+     */
+    private void queryUserInfoAccordingToJid() {
+        final String jids = Utils.getJid() + "-" + jid;
+        api.getChatUsersInfo(jids)
+                .subscribeOn(Schedulers.io())
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribe(new Subscriber<ServletData<ArrayList<User>>>() {
+                    @Override
+                    public void onCompleted() {
+                    }
+
+                    @Override
+                    public void onError(Throwable e) {
+                        Log.e("查询失败", e.toString());
+                    }
+
+                    @Override
+                    public void onNext(ServletData<ArrayList<User>> servletData) {
+                        final ArrayList<User> userList = servletData.getData();
+                        handleData(userList);
+                        Log.e("查询成功", servletData.toString());
+                    }
+                });
+    }
+
+    /**
+     * 获取到用户信息后进行设置
+     */
+    private void handleData(ArrayList<User> userList) {
+        if (userList != null && userList.size() > 0) {
+            final User currentUser = userList.get(0);
+            final User otherUser = userList.get(1);
+            from_uid = currentUser.getId();
+            to_uid = otherUser.getId();
+            if (!Utils.isNull(otherUser.getNickname())) {
+                tv_title.setText(otherUser.getNickname());
+            } else {
+                tv_title.setText(otherUser.getUsername());
+            }
+        }
     }
 
     /**
@@ -150,6 +209,7 @@ public class ChatActivity extends AppCompatActivity implements ChatManagerListen
 
     /**
      * 向后台加添一条聊天记录
+     *
      * @param from_uid
      * @param to_uid
      */

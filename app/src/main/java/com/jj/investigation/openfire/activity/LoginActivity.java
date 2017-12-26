@@ -10,8 +10,11 @@ import android.widget.TextView;
 
 import com.jj.investigation.openfire.R;
 import com.jj.investigation.openfire.bean.ServletData;
+import com.jj.investigation.openfire.bean.User;
 import com.jj.investigation.openfire.retrofit.RetrofitUtil;
 import com.jj.investigation.openfire.smack.XmppManager;
+import com.jj.investigation.openfire.utils.Constants;
+import com.jj.investigation.openfire.utils.ShareValue;
 import com.jj.investigation.openfire.utils.ToastUtils;
 import com.jj.investigation.openfire.view.AutoEditText;
 import com.jj.investigation.openfire.view.LoadingDialog;
@@ -53,10 +56,6 @@ public class LoginActivity extends AppCompatActivity {
      * 登录的点击事件
      */
     public void login(View v) {
-        LoginTask loginTask = new LoginTask();
-        loginTask.execute(et_username.getText().toString(), et_password
-                .getText().toString());
-
         requestLogin();
     }
 
@@ -71,12 +70,6 @@ public class LoginActivity extends AppCompatActivity {
      * 登录任务：openfire登录
      */
     private class LoginTask extends AsyncTask<String, Void, Boolean> {
-
-        @Override
-        protected void onPreExecute() {
-            super.onPreExecute();
-            loadingDialog.showDialog("正在登录...");
-        }
 
         @Override
         protected Boolean doInBackground(String... params) {
@@ -112,11 +105,12 @@ public class LoginActivity extends AppCompatActivity {
      * 自己平台的登录
      */
     private void requestLogin() {
+        loadingDialog.showDialog("正在登录...");
         RetrofitUtil.createApi().login(et_username.getText().toString().trim(),
                 et_password.getText().toString().trim())
                 .subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
-                .subscribe(new Subscriber<ServletData>() {
+                .subscribe(new Subscriber<ServletData<User>>() {
                     @Override
                     public void onCompleted() {}
                     @Override
@@ -125,12 +119,25 @@ public class LoginActivity extends AppCompatActivity {
                     }
 
                     @Override
-                    public void onNext(ServletData data) {
+                    public void onNext(ServletData<User> data) {
 
                         if (data.getCode() == 200) {
-                            Log.e("注册成功", data.toString());
+                            // 自己平台登录成功，开始OpenFire的登录
+                            LoginTask loginTask = new LoginTask();
+                            loginTask.execute(et_username.getText().toString(), et_password
+                                    .getText().toString());
+                            // 存储id以及jid
+                            User user = data.getData();
+                            ShareValue.getInstance(LoginActivity.this).putStringValue(Constants.SP_UID,
+                                    String.valueOf(user.getId()));
+                            ShareValue.getInstance(LoginActivity.this).putStringValue(Constants.SP_JID,
+                                    String.valueOf(user.getJid()));
+                            String jid = ShareValue.getInstance(LoginActivity.this).getStringValue(Constants.SP_JID);
+
+                            Log.e("登录成功", data.toString());
                         } else {
-                            Log.e("注册失败", data.toString());
+                            loadingDialog.hideDialog();
+                            Log.e("登录失败", data.toString());
                         }
                     }
                 });
