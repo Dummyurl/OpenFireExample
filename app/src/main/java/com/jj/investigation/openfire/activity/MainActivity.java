@@ -15,8 +15,12 @@ import android.widget.TextView;
 
 import com.jj.investigation.openfire.R;
 import com.jj.investigation.openfire.adapter.ContactsListAdapter;
+import com.jj.investigation.openfire.bean.ServletData;
+import com.jj.investigation.openfire.retrofit.RetrofitUtil;
 import com.jj.investigation.openfire.smack.RosterManager;
 import com.jj.investigation.openfire.smack.XmppManager;
+import com.jj.investigation.openfire.utils.Logger;
+import com.jj.investigation.openfire.utils.Utils;
 
 import org.jivesoftware.smack.SmackException;
 import org.jivesoftware.smack.StanzaListener;
@@ -29,6 +33,10 @@ import org.jivesoftware.smack.tcp.XMPPTCPConnection;
 import org.jxmpp.util.XmppStringUtils;
 
 import java.util.Collection;
+
+import rx.Subscriber;
+import rx.android.schedulers.AndroidSchedulers;
+import rx.schedulers.Schedulers;
 
 /**
  * 首页
@@ -58,7 +66,6 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                     showSubscribedDialog((String) msg.obj);
                     break;
                 case UPDATE_STATUS:
-                    System.out.println("刷新--handler");
                     adapter.notifyDataSetChanged();
                     break;
                 default:
@@ -154,7 +161,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 // 只对好友申请状态消息处理
                 if (packet instanceof Presence) {
                     Presence presence = (Presence) packet;
-                    if (presence.getType().name().equals(Presence.Type.subscribe.name())) { // 对方添加我为好友
+                    if (presence.getType().name().equals(Presence.Type.subscribe.name())) { // 对方添加我为好友的申请
                         if (RosterManager.get().isAdd(presence.getFrom())) {
                             Message message = handler.obtainMessage(SUBSCRIB, presence.getFrom());
                             handler.sendMessage(message);
@@ -186,6 +193,8 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
     /**
      * 显示对方添加我为好友的dialog
+     *
+     * @param jid 对方的唯一标识
      */
     private void showSubscribeDialog(final String jid) {
         final String nickName = XmppStringUtils.parseLocalpart(jid);
@@ -219,11 +228,12 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     /**
      * 别人同意添加我为好友的通知，添加完毕后，刷新我的好友列表
      *
-     * @param jid 对方的唯一标识
+     * @param jid 对方的唯一标识(name@pc2015....)
      */
     private void showSubscribedDialog(String jid) {
         // 刷新数据
         initData();
+        addFriend(jid);
         String nickName = XmppStringUtils.parseLocalpart(jid);
         AlertDialog.Builder builder = new AlertDialog.Builder(this);
         builder.setTitle("温馨提示").setMessage("恭喜你，" + nickName + "已添加你为好友!")
@@ -243,6 +253,32 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 });
         final AlertDialog dialog = builder.create();
         dialog.show();
+    }
+
+    /**
+     * 添加好友的请求--在OpenFire中已经是好友了，在自己平台数据库中添加该数据
+     * 因为只要成为好友就是互为好友，所以要使用到自己的jid和对方的jid，数据库插入数据要插入两条，所以
+     * addFriend里面的两个参数谁先谁后无所谓，后台不区分
+     */
+    public void addFriend(String to_jid) {
+        RetrofitUtil.createApi().addFriend(to_jid, Utils.getJid())
+                .subscribeOn(Schedulers.io())
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribe(new Subscriber<ServletData>() {
+                    @Override
+                    public void onCompleted() {
+                    }
+
+                    @Override
+                    public void onError(Throwable e) {
+                        Logger.e("添加好友异常：" + e.toString());
+                    }
+
+                    @Override
+                    public void onNext(ServletData servletData) {
+                        Logger.e("添加好友成功：" + servletData.toString());
+                    }
+                });
     }
 
 

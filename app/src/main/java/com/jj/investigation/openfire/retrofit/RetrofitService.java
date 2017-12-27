@@ -26,7 +26,7 @@ public interface RetrofitService {
     @FormUrlEncoded
     @POST(Constants.LOGIN)
     Observable<ServletData<User>> login(@Field("username") String username,
-                                  @Field("password") String plainPassword);
+                                        @Field("password") String plainPassword);
 
 
     // 注册
@@ -37,11 +37,17 @@ public interface RetrofitService {
                                    @Field("email") String email,
                                    @Field("jid") String jid);
 
+    // 添加好友
+    @FormUrlEncoded
+    @POST(Constants.ADD_FRIEND)
+    Observable<ServletData> addFriend(@Field("current_jid") String current_jid,
+                                      @Field("friend_jid") String friend_jid);
+
+
     // 添加聊天记录
     @Multipart
     @POST(Constants.ADD_CHAT_RECORD)
     Observable<ServletData> getChatRecord(@PartMap Map<String, RequestBody> map);
-
 
 
     // 查询聊天页面的用户资料
