@@ -15,6 +15,8 @@ public class Constants {
     public static final String LOGIN= "loginServlet";
     // 添加聊天记录
     public static final String ADD_CHAT_RECORD= "addChatRecord";
+    // 获取聊天记录
+    public static final String GET_CHAT_RECORD= "chatRecord";
     // 查询聊天页面的用户资料
     public static final String CHAT_USERS_INFO= "chatUserInfo";
     // 添加好友

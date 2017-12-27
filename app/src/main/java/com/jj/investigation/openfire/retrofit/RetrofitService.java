@@ -47,7 +47,15 @@ public interface RetrofitService {
     // 添加聊天记录
     @Multipart
     @POST(Constants.ADD_CHAT_RECORD)
-    Observable<ServletData> getChatRecord(@PartMap Map<String, RequestBody> map);
+    Observable<ServletData> addChatRecord(@PartMap Map<String, RequestBody> map);
+
+    @FormUrlEncoded
+    @POST(Constants.ADD_CHAT_RECORD)
+    Observable<ServletData> addChatRecord(@Field("msg") String msg,
+                                          @Field("msg_type") String msg_type,
+                                          @Field("from_uid") String from_uid,
+                                          @Field("to_uid") String to_uid,
+                                          @Field("send_time") String send_time);
 
 
     // 查询聊天页面的用户资料

@@ -20,6 +20,8 @@ import com.jj.investigation.openfire.retrofit.RetrofitService;
 import com.jj.investigation.openfire.retrofit.RetrofitUtil;
 import com.jj.investigation.openfire.smack.XmppManager;
 import com.jj.investigation.openfire.utils.DateUtils;
+import com.jj.investigation.openfire.utils.Logger;
+import com.jj.investigation.openfire.utils.RequestBodyUtils;
 import com.jj.investigation.openfire.utils.Utils;
 
 import org.jivesoftware.smack.chat.Chat;
@@ -31,8 +33,11 @@ import org.jivesoftware.smack.tcp.XMPPTCPConnection;
 import org.jxmpp.util.XmppStringUtils;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
+import okhttp3.RequestBody;
 import rx.Subscriber;
 import rx.android.schedulers.AndroidSchedulers;
 import rx.schedulers.Schedulers;
@@ -186,21 +191,20 @@ public class ChatActivity extends AppCompatActivity implements ChatManagerListen
      */
     public void clickSendMessage(View v) {
         try {
-            String content = et_input_sms.getText().toString().trim();
+            final String content = et_input_sms.getText().toString().trim();
             // 发送消息(该消息只用来在本地显示)
-            MyMessage localMessage = new MyMessage(currentUser, jid, content,
+            final MyMessage localMessage = new MyMessage(currentUser, jid, content,
                     DateUtils.newDate(), MyMessage.OprationType.Send.getType());
 
             messageList.add(localMessage);
             adapter.notifyDataSetChanged();
 
             // 要发送的消息，发送的消息需要别人来接收，所以发送时OprationType的值应该为Receiver而不是send
-            MyMessage remoteMessage = new MyMessage(currentUser, jid, content,
+            final MyMessage remoteMessage = new MyMessage(currentUser, jid, content,
                     DateUtils.newDate(), MyMessage.OprationType.Receiver.getType());
             chat.sendMessage(remoteMessage.toJson());
-            et_input_sms.setText("");
-
             pushRecord(from_uid, to_uid);
+            et_input_sms.setText("");
         } catch (Exception e) {
             e.printStackTrace();
             Log.e("发送消息异常：", e.toString());
@@ -210,11 +214,32 @@ public class ChatActivity extends AppCompatActivity implements ChatManagerListen
     /**
      * 向后台加添一条聊天记录
      *
-     * @param from_uid
-     * @param to_uid
+     * @param from_uid 当前用户的user_id
+     * @param to_uid   接收消息的用户的user_id
      */
     private void pushRecord(String from_uid, String to_uid) {
+        final Map<String, RequestBody> map = new HashMap<>();
+        map.put("msg", RequestBodyUtils.toRequestBody(et_input_sms.getText().toString().trim()));
+        map.put("msg_type", RequestBodyUtils.toRequestBody("text"));
+        map.put("from_uid", RequestBodyUtils.toRequestBody(from_uid));
+        map.put("to_uid", RequestBodyUtils.toRequestBody(to_uid));
+        map.put("send_time", RequestBodyUtils.toRequestBody(DateUtils.newDate()));
+        api.addChatRecord(et_input_sms.getText().toString().trim(), "text", from_uid, to_uid, DateUtils.newDate())
+                .subscribeOn(Schedulers.io())
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribe(new Subscriber<ServletData>() {
+                    @Override
+                    public void onCompleted() {}
+                    @Override
+                    public void onError(Throwable e) {
+                        Logger.e("添加消息异常：" + e.toString());
+                    }
 
+                    @Override
+                    public void onNext(ServletData servletData) {
+                        Logger.e("添加消息成功：" + servletData.toString());
+                    }
+                });
 
     }
 }
