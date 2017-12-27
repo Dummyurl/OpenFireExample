@@ -21,7 +21,6 @@ import com.jj.investigation.openfire.retrofit.RetrofitUtil;
 import com.jj.investigation.openfire.smack.XmppManager;
 import com.jj.investigation.openfire.utils.DateUtils;
 import com.jj.investigation.openfire.utils.Logger;
-import com.jj.investigation.openfire.utils.RequestBodyUtils;
 import com.jj.investigation.openfire.utils.Utils;
 
 import org.jivesoftware.smack.chat.Chat;
@@ -33,11 +32,8 @@ import org.jivesoftware.smack.tcp.XMPPTCPConnection;
 import org.jxmpp.util.XmppStringUtils;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
-import okhttp3.RequestBody;
 import rx.Subscriber;
 import rx.android.schedulers.AndroidSchedulers;
 import rx.schedulers.Schedulers;
@@ -122,6 +118,7 @@ public class ChatActivity extends AppCompatActivity implements ChatManagerListen
     /**
      * 根据jid查询用户的信息：
      * 自己和对方的信息
+     * 这个要改了，聊天记录要和用户信息一起返回，只是用一个接口即可
      */
     private void queryUserInfoAccordingToJid() {
         final String jids = Utils.getJid() + "-" + jid;
@@ -130,9 +127,7 @@ public class ChatActivity extends AppCompatActivity implements ChatManagerListen
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribe(new Subscriber<ServletData<ArrayList<User>>>() {
                     @Override
-                    public void onCompleted() {
-                    }
-
+                    public void onCompleted() {}
                     @Override
                     public void onError(Throwable e) {
                         Log.e("查询失败", e.toString());
@@ -218,12 +213,6 @@ public class ChatActivity extends AppCompatActivity implements ChatManagerListen
      * @param to_uid   接收消息的用户的user_id
      */
     private void pushRecord(String from_uid, String to_uid) {
-        final Map<String, RequestBody> map = new HashMap<>();
-        map.put("msg", RequestBodyUtils.toRequestBody(et_input_sms.getText().toString().trim()));
-        map.put("msg_type", RequestBodyUtils.toRequestBody("text"));
-        map.put("from_uid", RequestBodyUtils.toRequestBody(from_uid));
-        map.put("to_uid", RequestBodyUtils.toRequestBody(to_uid));
-        map.put("send_time", RequestBodyUtils.toRequestBody(DateUtils.newDate()));
         api.addChatRecord(et_input_sms.getText().toString().trim(), "text", from_uid, to_uid, DateUtils.newDate())
                 .subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
@@ -240,6 +229,5 @@ public class ChatActivity extends AppCompatActivity implements ChatManagerListen
                         Logger.e("添加消息成功：" + servletData.toString());
                     }
                 });
-
     }
 }

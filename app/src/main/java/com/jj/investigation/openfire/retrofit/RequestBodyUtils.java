@@ -1,4 +1,6 @@
-package com.jj.investigation.openfire.utils;
+package com.jj.investigation.openfire.retrofit;
+
+import com.jj.investigation.openfire.utils.Utils;
 
 import okhttp3.MediaType;
 import okhttp3.RequestBody;
