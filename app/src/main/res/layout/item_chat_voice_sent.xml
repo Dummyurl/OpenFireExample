@@ -45,18 +45,11 @@
             android:paddingRight="15dp"
             android:paddingTop="5dp">
 
-            <View
-                android:id="@+id/view_read_status"
-                android:layout_width="15dp"
-                android:layout_height="15dp"
-                android:layout_marginLeft="10dp"
-                android:background="@drawable/circular"/>
-
             <TextView
                 android:id="@+id/tv_voice_duration"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_gravity="top"
+                android:layout_gravity="center_vertical"
                 android:text="11"
                 android:textColor="#FFFFFF"
                 android:textSize="14sp"
@@ -72,13 +65,14 @@
         </LinearLayout>
 
         <ImageView
-            android:id="@+id/iv_voice_fy"
+            android:id="@+id/iv_voice_error"
             android:layout_width="20dp"
             android:layout_height="20dp"
             android:layout_alignBottom="@+id/layout_voice"
             android:layout_marginRight="5dp"
             android:layout_toLeftOf="@+id/layout_voice"
-            android:src="@drawable/ic_fy" />
+            android:src="@drawable/ic_fy"
+            android:visibility="gone"/>
     </RelativeLayout>
 
 </RelativeLayout>

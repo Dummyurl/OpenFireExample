@@ -1,14 +1,20 @@
 package com.jj.investigation.openfire.adapter;
 
 import android.content.Context;
+import android.media.MediaPlayer;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.BaseAdapter;
+import android.widget.ImageView;
+import android.widget.LinearLayout;
 import android.widget.TextView;
 
 import com.jj.investigation.openfire.R;
 import com.jj.investigation.openfire.bean.MyMessage;
+import com.jj.investigation.openfire.utils.FileManager;
+import com.jj.investigation.openfire.utils.Logger;
+import com.jj.investigation.openfire.utils.Utils;
 import com.jj.investigation.openfire.view.CircleImageView;
 
 import java.util.List;
@@ -23,6 +29,7 @@ public class ChatAdapter extends BaseAdapter {
     private Context context;
     private List<MyMessage> messageList;
     private LayoutInflater inflater;
+    private MediaPlayer mediaPlayer;
 
     // 文本（代表14中布局类型中的文本布局类型）
     private static final int MESSAGE_TYPE_TXT_RECE = 0;
@@ -49,7 +56,15 @@ public class ChatAdapter extends BaseAdapter {
     public ChatAdapter(Context context, List<MyMessage> messageList) {
         this.context = context;
         this.messageList = messageList;
+        mediaPlayer = new MediaPlayer();
         inflater = LayoutInflater.from(context);
+        mediaPlayer.setOnCompletionListener(new MediaPlayer.OnCompletionListener() {
+            @Override
+            public void onCompletion(MediaPlayer mp) {
+                // 播放完毕重置
+                mediaPlayer.reset();
+            }
+        });
     }
 
     @Override
@@ -88,7 +103,7 @@ public class ChatAdapter extends BaseAdapter {
     @Override
     public View getView(int position, View convertView, ViewGroup parent) {
         ViewHolder holder;
-        MyMessage message = getItem(position);
+        final MyMessage message = getItem(position);
         if (convertView == null) {
             if (getItemViewType(position) == MESSAGE_TYPE_TXT_SENT) {
                 convertView = inflater.inflate(R.layout.item_chat_text_sent, parent, false);
@@ -104,17 +119,36 @@ public class ChatAdapter extends BaseAdapter {
         } else {
             holder = (ViewHolder) convertView.getTag();
         }
-        if (message == null) {
-            message = new MyMessage("", "", "", "", 0);
-        }
 
         // 设置布局的内容
         if (message.getMessageType() == MyMessage.MessageType.Text.getType()) {
             holder.tv_message_text.setText(message.getContent());
         } else if (message.getMessageType() == MyMessage.MessageType.Voice.getType()){
-            holder.tv_chat_time.setText(message.getVoiceRecordTime() + "");
+            holder.tv_voice_duration.setText(message.getVoiceRecordTime() + "''");
+            holder.layout_voice.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+
+                    final String filePath = FileManager.searchFile(message.getFileName(), "voice");
+                    Logger.e("文件的路径：" + filePath);
+                    if (!Utils.isNull(filePath)) {
+                        try {
+                            Logger.e("文件的路径：" + filePath);
+
+                            mediaPlayer.setDataSource(filePath);
+                            mediaPlayer.prepare();
+                            mediaPlayer.start();
+                        } catch (Exception e) {
+                            e.printStackTrace();
+                        }
+                    }
+                }
+            });
         }
         holder.tv_chat_time.setText(message.getData());
+
+        Logger.e("语音的URL：" + message.getFileName());
+
 
         return convertView;
     }
@@ -131,6 +165,10 @@ public class ChatAdapter extends BaseAdapter {
         TextView tv_voice_duration;
         // 语音未读时显示的小红点
         View view_read_status;
+        // 消息发送失败
+        ImageView iv_voice_error;
+        // 整个语音的布局
+        LinearLayout layout_voice;
 
         public ViewHolder(View convertView) {
             if (convertView == null) return;
@@ -139,6 +177,8 @@ public class ChatAdapter extends BaseAdapter {
             tv_message_text = (TextView) convertView.findViewById(R.id.tv_message_text);
             tv_voice_duration = (TextView) convertView.findViewById(R.id.tv_voice_duration);
             view_read_status = convertView.findViewById(R.id.view_read_status);
+            iv_voice_error = (ImageView) convertView.findViewById(R.id.iv_voice_error);
+            layout_voice = (LinearLayout) convertView.findViewById(R.id.layout_voice);
         }
     }
 }

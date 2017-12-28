@@ -39,7 +39,7 @@
             android:gravity="left|center_vertical"
             android:minHeight="45dp"
             android:minWidth="80dp"
-            android:orientation="vertical"
+            android:orientation="horizontal"
             android:paddingBottom="5dp"
             android:paddingLeft="15dp"
             android:paddingRight="5dp"
@@ -55,10 +55,19 @@
                 android:id="@+id/tv_voice_duration"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="5dp"
+                android:layout_gravity="center_vertical"
                 android:textColor="#000000"
                 android:textSize="14sp"
-                android:visibility="gone" />
+                android:visibility="visible" />
+
+            <View
+                android:id="@+id/view_read_status"
+                android:layout_width="10dp"
+                android:layout_height="10dp"
+                android:layout_marginLeft="10dp"
+                android:layout_marginRight="15dp"
+                android:background="@drawable/circular"/>
+
         </LinearLayout>
 
         <ImageView
@@ -68,7 +77,8 @@
             android:layout_alignBottom="@+id/layout_voice"
             android:layout_marginLeft="5dp"
             android:layout_toRightOf="@+id/layout_voice"
-            android:src="@drawable/ic_fy" />
+            android:src="@drawable/ic_fy"
+            android:visibility="gone"/>
     </RelativeLayout>
 
 </RelativeLayout>

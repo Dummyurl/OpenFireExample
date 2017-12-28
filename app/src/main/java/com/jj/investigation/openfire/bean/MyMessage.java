@@ -65,10 +65,12 @@ public class MyMessage {
     private String data;
     // 发送类型：接收者还是发送者
     private int oprationType = OprationType.Send.getType();
-    // 消息的类型：文本、语音、、、、
+    // 消息的类型：文本、语音......
     private int messageType = MessageType.Text.getType();
     // 发送文件的文件名称
     private String fileName;
+    // 文件在手机本地的路径
+    private String fileLocalUrl;
     // 语音文件的时长
     private long voiceRecordTime;
 
@@ -161,6 +163,14 @@ public class MyMessage {
 
     public void setVoiceRecordTime(long voiceRecordTime) {
         this.voiceRecordTime = voiceRecordTime;
+    }
+
+    public String getFileLocalUrl() {
+        return fileLocalUrl;
+    }
+
+    public void setFileLocalUrl(String fileLocalUrl) {
+        this.fileLocalUrl = fileLocalUrl;
     }
 
     @Override

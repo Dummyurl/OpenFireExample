@@ -34,9 +34,10 @@ public class VoiceRecordButton extends Button {
     // 是否正在录音
     private boolean isRecording = true;
     private boolean permissionRecord;
-    private boolean permissionStorage;
+    private boolean permissionWrite;
     private VoiceRecordThread recordThread;
     private File recordFile;
+    private boolean permissionRead;
 
 
     public VoiceRecordButton(Context context) {
@@ -51,20 +52,26 @@ public class VoiceRecordButton extends Button {
     private void checkMyPermission() {
         permissionRecord = ContextCompat.checkSelfPermission(getContext(), Manifest.permission.RECORD_AUDIO)
                 == PackageManager.PERMISSION_GRANTED;
-        permissionStorage = ContextCompat.checkSelfPermission(getContext(), Manifest.permission.WRITE_EXTERNAL_STORAGE)
+        permissionWrite = ContextCompat.checkSelfPermission(getContext(), Manifest.permission.WRITE_EXTERNAL_STORAGE)
                 == PackageManager.PERMISSION_GRANTED;
-        if (!permissionRecord || !permissionStorage) {
+        permissionRead = ContextCompat.checkSelfPermission(getContext(), Manifest.permission.READ_EXTERNAL_STORAGE)
+                == PackageManager.PERMISSION_GRANTED;
+        if (!permissionRecord || !permissionWrite || !permissionRead) {
             ActivityCompat.requestPermissions((Activity) getContext(), new String[]{"android.permission.RECORD_AUDIO",
-                    "android.permission.WRITE_EXTERNAL_STORAGE"}, 1);
+                    "android.permission.WRITE_EXTERNAL_STORAGE",
+                    "android.permission.READ_EXTERNAL_STORAGE"}, 1);
         } else {
             permissionRecord = true;
-            permissionStorage = true;
+            permissionWrite = true;
+            permissionRead = true;
         }
     }
 
     @Override
     public boolean onTouchEvent(MotionEvent event) {
-        if (permissionRecord && permissionStorage) {
+        // 每次录制要要检查权限
+        checkMyPermission();
+        if (permissionRecord && permissionWrite) {
             switch(event.getAction()) {
                 case MotionEvent.ACTION_DOWN: // 开始录音
                     startRecording();
@@ -97,10 +104,10 @@ public class VoiceRecordButton extends Button {
         // 设置录音的编码格式
         mediaRecorder.setAudioEncoder(MediaRecorder.AudioEncoder.DEFAULT);
         // 指定录音文件保存的目录
-        final File file = FileManager.createFile("record");
+        final File file = FileManager.createFile("voice");
         long mill = System.currentTimeMillis();
         // 录音文件
-        recordFile = new File(file, "record_" + mill);
+        recordFile = new File(file, "voice_" + mill);
         mediaRecorder.setOutputFile(recordFile.getAbsolutePath());
         // 开启录音
         try {
@@ -123,14 +130,17 @@ public class VoiceRecordButton extends Button {
      */
     private void stopRecording() {
         isRecording = false;
-//        ToastRecord.hideToast();
         if (mediaRecorder != null) {
             mediaRecorder.stop();
             mediaRecorder.release();
 
             long allTime = (System.currentTimeMillis() - startTime) / 1000;
-            if (onVoiceRecordListener != null) {
-                onVoiceRecordListener.onRecordEnd(recordFile, allTime);
+            if (allTime < 1) {
+                ToastUtils.showLongToast("录制时间过短");
+            } else {
+                if (onVoiceRecordListener != null) {
+                    onVoiceRecordListener.onRecordEnd(recordFile, allTime);
+                }
             }
         }
     }
@@ -159,24 +169,33 @@ public class VoiceRecordButton extends Button {
                     Thread.sleep(100);
                     // 获取声音分贝
                     // 根据这个相对值，不断替换显示的图片
-                    int x = mediaRecorder.getMaxAmplitude();
+                    int x = 0;
+                    try {
+                        // 可能会报这个错误：java.lang.RuntimeException: getMaxAmplitude failed.
+                        // 但是该错误出现有很大的不确定性，一会有一会没有，而且要跟机型有关，所以捕获这个异常
+                        x = mediaRecorder.getMaxAmplitude();
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                    }
                     // if (x != 0) {
                     // 根据分贝大小计算得到一个音量的相对值
                     int f = (int) (10 * Math.log(x) / Math.log(10));
-                    if (f < 10) {
-                        handler.sendEmptyMessage(R.drawable.recording_indicator_voice_1);
-                    } else if (f < 15) {
-                        handler.sendEmptyMessage(R.drawable.recording_indicator_voice_2);
-                    } else if (f < 20) {
-                        handler.sendEmptyMessage(R.drawable.recording_indicator_voice_3);
-                    } else if (f < 25) {
-                        handler.sendEmptyMessage(R.drawable.recording_indicator_voice_4);
-                    } else if (f < 30) {
-                        handler.sendEmptyMessage(R.drawable.recording_indicator_voice_5);
-                    } else if (f < 35) {
-                        handler.sendEmptyMessage(R.drawable.recording_indicator_voice_6);
-                    } else if (f < 40) {
-                        handler.sendEmptyMessage(R.drawable.recording_indicator_voice_7);
+                    if (x != 0) {
+                        if (f < 10) {
+                            handler.sendEmptyMessage(R.drawable.recording_indicator_voice_1);
+                        } else if (f < 15) {
+                            handler.sendEmptyMessage(R.drawable.recording_indicator_voice_2);
+                        } else if (f < 20) {
+                            handler.sendEmptyMessage(R.drawable.recording_indicator_voice_3);
+                        } else if (f < 25) {
+                            handler.sendEmptyMessage(R.drawable.recording_indicator_voice_4);
+                        } else if (f < 30) {
+                            handler.sendEmptyMessage(R.drawable.recording_indicator_voice_5);
+                        } else if (f < 35) {
+                            handler.sendEmptyMessage(R.drawable.recording_indicator_voice_6);
+                        } else if (f < 40) {
+                            handler.sendEmptyMessage(R.drawable.recording_indicator_voice_7);
+                        }
                     }
                 } catch (InterruptedException e) {
                     e.printStackTrace();

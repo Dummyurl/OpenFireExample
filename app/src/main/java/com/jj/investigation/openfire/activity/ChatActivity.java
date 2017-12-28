@@ -19,18 +19,25 @@ import com.jj.investigation.openfire.retrofit.RetrofitService;
 import com.jj.investigation.openfire.retrofit.RetrofitUtil;
 import com.jj.investigation.openfire.smack.XmppManager;
 import com.jj.investigation.openfire.utils.DateUtils;
+import com.jj.investigation.openfire.utils.FileManager;
 import com.jj.investigation.openfire.utils.GsonUtils;
 import com.jj.investigation.openfire.utils.Logger;
+import com.jj.investigation.openfire.utils.ToastUtils;
 import com.jj.investigation.openfire.utils.Utils;
 import com.jj.investigation.openfire.view.VoiceRecordButton;
 
-import org.jivesoftware.smack.SmackException;
 import org.jivesoftware.smack.chat.Chat;
 import org.jivesoftware.smack.chat.ChatManager;
 import org.jivesoftware.smack.chat.ChatManagerListener;
 import org.jivesoftware.smack.chat.ChatMessageListener;
 import org.jivesoftware.smack.packet.Message;
 import org.jivesoftware.smack.tcp.XMPPTCPConnection;
+import org.jivesoftware.smackx.filetransfer.FileTransfer;
+import org.jivesoftware.smackx.filetransfer.FileTransferListener;
+import org.jivesoftware.smackx.filetransfer.FileTransferManager;
+import org.jivesoftware.smackx.filetransfer.FileTransferRequest;
+import org.jivesoftware.smackx.filetransfer.IncomingFileTransfer;
+import org.jivesoftware.smackx.filetransfer.OutgoingFileTransfer;
 import org.jxmpp.util.XmppStringUtils;
 
 import java.io.File;
@@ -48,7 +55,8 @@ import rx.schedulers.Schedulers;
  * Created by ${R.js} on 2017/12/19.
  */
 
-public class ChatActivity extends AppCompatActivity implements ChatManagerListener, ChatMessageListener, VoiceRecordButton.OnVoiceRecordListener {
+public class ChatActivity extends AppCompatActivity implements ChatManagerListener, ChatMessageListener,
+        VoiceRecordButton.OnVoiceRecordListener, FileTransferListener {
 
     private EditText et_input_sms;
     private String name;
@@ -64,7 +72,10 @@ public class ChatActivity extends AppCompatActivity implements ChatManagerListen
     // 消息集合
     private List<MyMessage> messageList = new ArrayList<>();
     private ChatAdapter adapter;
+    // 接收消息
     private static final int MESSAGE_RECEIVE = 0;
+    // 文件下载成功
+    private static final int FILE_DOWNLOAD_SUCESS = 1;
 
     private final Handler handler = new Handler() {
         @Override
@@ -74,11 +85,16 @@ public class ChatActivity extends AppCompatActivity implements ChatManagerListen
                 case MESSAGE_RECEIVE:
                     adapter.notifyDataSetChanged();
                     break;
+                case FILE_DOWNLOAD_SUCESS:
+                    ToastUtils.showLongToast("文件下载成功");
+                    Logger.e("文件下载成功：" + msg.obj.toString());
+                    break;
                 default:
                     break;
             }
         }
     };
+    private FileTransferManager fileTransferManager;
 
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
@@ -108,7 +124,7 @@ public class ChatActivity extends AppCompatActivity implements ChatManagerListen
         adapter = new ChatAdapter(this, messageList);
         lv_message_chat.setAdapter(adapter);
 
-        // 创建会话
+        // 获取连接
         connection = XmppManager.getConnection();
         // 获取当前用户jid
         currentUser = connection.getUser();
@@ -118,6 +134,10 @@ public class ChatActivity extends AppCompatActivity implements ChatManagerListen
         chat = chatManager.createChat(jid);
         // 会话创建成功的监听
         chatManager.addChatListener(this);
+
+        // 获取OpenFire的文件管理器并添加上传文件的监听
+        fileTransferManager = FileTransferManager.getInstanceFor(connection);
+        fileTransferManager.addFileTransferListener(this);
     }
 
     /**
@@ -189,6 +209,7 @@ public class ChatActivity extends AppCompatActivity implements ChatManagerListen
 
     /**
      * 发送消息的点击事件
+     * 这里发送的都是文本消息
      */
     public void clickSendMessage(View v) {
         try {
@@ -224,7 +245,9 @@ public class ChatActivity extends AppCompatActivity implements ChatManagerListen
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribe(new Subscriber<ServletData>() {
                     @Override
-                    public void onCompleted() {}
+                    public void onCompleted() {
+                    }
+
                     @Override
                     public void onError(Throwable e) {
                         Logger.e("添加消息异常：" + e.toString());
@@ -250,20 +273,57 @@ public class ChatActivity extends AppCompatActivity implements ChatManagerListen
         final MyMessage localMessage = new MyMessage(currentUser, jid, content,
                 DateUtils.newDate(), MyMessage.OprationType.Send.getType(),
                 recordFile.getName(), duration);
+        // 根据决定路径来找录音文件播放
+        localMessage.setFileLocalUrl(recordFile.getAbsolutePath());
+        Logger.e("绝对路径：" + recordFile.getAbsolutePath());
 
         messageList.add(localMessage);
         adapter.notifyDataSetChanged();
 
-        // 要发送的消息，发送的消息需要别人来接收，所以发送时OprationType的值应该为Receiver而不是send
+        // 要发送的消息(文本)，发送的消息需要别人来接收，所以发送时OprationType的值应该为Receiver而不是send
         final MyMessage remoteMessage = new MyMessage(currentUser, jid, content,
                 DateUtils.newDate(), MyMessage.OprationType.Receiver.getType(),
                 recordFile.getName(), duration);
 
         // 发送消息
         try {
+            // 发送文本
             chat.sendMessage(remoteMessage.toJson());
-        } catch (SmackException.NotConnectedException e) {
+            // 发送语音
+            final OutgoingFileTransfer outgoingFileTransfer = fileTransferManager.
+                    createOutgoingFileTransfer(jid + "/Smack");
+            outgoingFileTransfer.sendFile(recordFile, remoteMessage.toJson()); // 后面参数是对文件的描述
+        } catch (Exception e) {
             e.printStackTrace();
+        }
+    }
+
+    /**
+     * OpenFire上传文件的监听
+     * 只要对方一发送问件，这里就可以监听到，在这里进行文件的接收
+     */
+    @Override
+    public void fileTransferRequest(FileTransferRequest request) {
+        final IncomingFileTransfer accept = request.accept();
+
+        // 下载文件：
+        // 1.获取文件
+        final File file = new File(FileManager.createFile("voice"), accept.getFileName());
+
+
+        try {
+            // 2.下载文件
+            accept.recieveFile(file);
+            Thread.sleep(3000);
+            // 3.判断文件是否下载成功
+            Logger.e("文件的下载状态：" + accept.getStatus());
+            if (accept.getStatus() == FileTransfer.Status.complete) {
+                android.os.Message message = handler.obtainMessage(FILE_DOWNLOAD_SUCESS, file.getName());
+                handler.sendMessage(message);
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+            Logger.e("下载文件出错：" + e.toString());
         }
 
     }
