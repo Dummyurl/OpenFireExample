@@ -33,10 +33,4 @@ public class ToastRecord {
         toast.setDuration(Toast.LENGTH_SHORT);
         toast.show();
     }
-
-    public static void hideToast() {
-        if (toast != null) {
-            toast.cancel();
-        }
-    }
 }

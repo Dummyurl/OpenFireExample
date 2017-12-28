@@ -41,7 +41,7 @@
             android:orientation="horizontal" >
 
             <com.jj.investigation.openfire.view.VoiceRecordButton
-                android:id="@+id/bt_voice"
+                android:id="@+id/btn_voice_record"
                 android:layout_width="30dip"
                 android:layout_height="30dip"
                 android:layout_marginLeft="5dip"

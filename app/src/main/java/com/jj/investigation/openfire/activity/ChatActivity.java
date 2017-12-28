@@ -10,7 +10,6 @@ import android.widget.EditText;
 import android.widget.ListView;
 import android.widget.TextView;
 
-import com.google.gson.Gson;
 import com.jj.investigation.openfire.R;
 import com.jj.investigation.openfire.adapter.ChatAdapter;
 import com.jj.investigation.openfire.bean.MyMessage;
@@ -20,9 +19,12 @@ import com.jj.investigation.openfire.retrofit.RetrofitService;
 import com.jj.investigation.openfire.retrofit.RetrofitUtil;
 import com.jj.investigation.openfire.smack.XmppManager;
 import com.jj.investigation.openfire.utils.DateUtils;
+import com.jj.investigation.openfire.utils.GsonUtils;
 import com.jj.investigation.openfire.utils.Logger;
 import com.jj.investigation.openfire.utils.Utils;
+import com.jj.investigation.openfire.view.VoiceRecordButton;
 
+import org.jivesoftware.smack.SmackException;
 import org.jivesoftware.smack.chat.Chat;
 import org.jivesoftware.smack.chat.ChatManager;
 import org.jivesoftware.smack.chat.ChatManagerListener;
@@ -31,6 +33,7 @@ import org.jivesoftware.smack.packet.Message;
 import org.jivesoftware.smack.tcp.XMPPTCPConnection;
 import org.jxmpp.util.XmppStringUtils;
 
+import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -45,7 +48,7 @@ import rx.schedulers.Schedulers;
  * Created by ${R.js} on 2017/12/19.
  */
 
-public class ChatActivity extends AppCompatActivity implements ChatManagerListener, ChatMessageListener {
+public class ChatActivity extends AppCompatActivity implements ChatManagerListener, ChatMessageListener, VoiceRecordButton.OnVoiceRecordListener {
 
     private EditText et_input_sms;
     private String name;
@@ -89,6 +92,8 @@ public class ChatActivity extends AppCompatActivity implements ChatManagerListen
         tv_title = (TextView) findViewById(R.id.tv_title);
         et_input_sms = (EditText) findViewById(R.id.et_input_sms);
         lv_message_chat = (ListView) findViewById(R.id.lv_message_chat);
+        VoiceRecordButton btn_voice_record = (VoiceRecordButton) findViewById(R.id.btn_voice_record);
+        btn_voice_record.setOnVoiceRecordListener(this);
     }
 
     private void initData() {
@@ -127,7 +132,9 @@ public class ChatActivity extends AppCompatActivity implements ChatManagerListen
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribe(new Subscriber<ServletData<ArrayList<User>>>() {
                     @Override
-                    public void onCompleted() {}
+                    public void onCompleted() {
+                    }
+
                     @Override
                     public void onError(Throwable e) {
                         Log.e("查询失败", e.toString());
@@ -174,9 +181,8 @@ public class ChatActivity extends AppCompatActivity implements ChatManagerListen
      */
     @Override
     public void processMessage(Chat chat, Message message) {
-        String json = message.getBody();
-        Gson gson = new Gson();
-        MyMessage receiveMessage = gson.fromJson(json, MyMessage.class);
+        final String json = message.getBody();
+        MyMessage receiveMessage = GsonUtils.getGsonInstance().fromJson(json, MyMessage.class);
         messageList.add(receiveMessage);
         handler.sendEmptyMessage(MESSAGE_RECEIVE);
     }
@@ -229,5 +235,36 @@ public class ChatActivity extends AppCompatActivity implements ChatManagerListen
                         Logger.e("添加消息成功：" + servletData.toString());
                     }
                 });
+    }
+
+    /**
+     * 录音结束的监听：结束后向服务器发送文件
+     *
+     * @param recordFile 录音文件
+     * @param duration   录音文件的时长
+     */
+    @Override
+    public void onRecordEnd(File recordFile, long duration) {
+        final String content = et_input_sms.getText().toString().trim();
+        // 发送消息(该消息只用来在本地显示)
+        final MyMessage localMessage = new MyMessage(currentUser, jid, content,
+                DateUtils.newDate(), MyMessage.OprationType.Send.getType(),
+                recordFile.getName(), duration);
+
+        messageList.add(localMessage);
+        adapter.notifyDataSetChanged();
+
+        // 要发送的消息，发送的消息需要别人来接收，所以发送时OprationType的值应该为Receiver而不是send
+        final MyMessage remoteMessage = new MyMessage(currentUser, jid, content,
+                DateUtils.newDate(), MyMessage.OprationType.Receiver.getType(),
+                recordFile.getName(), duration);
+
+        // 发送消息
+        try {
+            chat.sendMessage(remoteMessage.toJson());
+        } catch (SmackException.NotConnectedException e) {
+            e.printStackTrace();
+        }
+
     }
 }

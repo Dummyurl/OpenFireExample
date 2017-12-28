@@ -36,6 +36,7 @@ public class VoiceRecordButton extends Button {
     private boolean permissionRecord;
     private boolean permissionStorage;
     private VoiceRecordThread recordThread;
+    private File recordFile;
 
 
     public VoiceRecordButton(Context context) {
@@ -98,7 +99,8 @@ public class VoiceRecordButton extends Button {
         // 指定录音文件保存的目录
         final File file = FileManager.createFile("record");
         long mill = System.currentTimeMillis();
-        final File recordFile = new File(file, "record_" + mill);
+        // 录音文件
+        recordFile = new File(file, "record_" + mill);
         mediaRecorder.setOutputFile(recordFile.getAbsolutePath());
         // 开启录音
         try {
@@ -127,6 +129,9 @@ public class VoiceRecordButton extends Button {
             mediaRecorder.release();
 
             long allTime = (System.currentTimeMillis() - startTime) / 1000;
+            if (onVoiceRecordListener != null) {
+                onVoiceRecordListener.onRecordEnd(recordFile, allTime);
+            }
         }
     }
 
@@ -178,5 +183,23 @@ public class VoiceRecordButton extends Button {
                 }
             }
         }
+    }
+
+
+
+    /**
+     * 录音监听
+     */
+    public interface OnVoiceRecordListener {
+        /**
+         *
+         * @param recordFile 录音文件
+         * @param duration 录音文件的时长
+         */
+        void onRecordEnd(File recordFile, long duration);
+    }
+    private OnVoiceRecordListener onVoiceRecordListener;
+    public  void setOnVoiceRecordListener(OnVoiceRecordListener onVoiceRecordListener) {
+        this.onVoiceRecordListener = onVoiceRecordListener;
     }
 }

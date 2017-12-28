@@ -1,6 +1,6 @@
 package com.jj.investigation.openfire.bean;
 
-import com.google.gson.Gson;
+import com.jj.investigation.openfire.utils.GsonUtils;
 
 /**
  * 通讯的消息体
@@ -65,9 +65,16 @@ public class MyMessage {
     private String data;
     // 发送类型：接收者还是发送者
     private int oprationType = OprationType.Send.getType();
+    // 消息的类型：文本、语音、、、、
     private int messageType = MessageType.Text.getType();
+    // 发送文件的文件名称
+    private String fileName;
+    // 语音文件的时长
+    private long voiceRecordTime;
 
-
+    /**
+     * 文本消息构造方法
+     */
     public MyMessage(String send, String receiver, String content, String data, int oprationType) {
         this.send = send;
         this.receiver = receiver;
@@ -75,6 +82,21 @@ public class MyMessage {
         this.data = data;
         this.oprationType = oprationType;
         this.messageType = MessageType.Text.getType();
+    }
+
+    /**
+     * 语音消息构造方法
+     */
+    public MyMessage(String send, String receiver, String content, String data, int oprationType,
+                     String fileName, long voiceRecordTime) {
+        this.send = send;
+        this.receiver = receiver;
+        this.content = content;
+        this.data = data;
+        this.oprationType = oprationType;
+        this.messageType = MessageType.Voice.getType();
+        this.fileName = fileName;
+        this.voiceRecordTime = voiceRecordTime;
     }
 
     public String getSend() {
@@ -125,6 +147,22 @@ public class MyMessage {
         this.messageType = messageType;
     }
 
+    public String getFileName() {
+        return fileName;
+    }
+
+    public void setFileName(String fileName) {
+        this.fileName = fileName;
+    }
+
+    public long getVoiceRecordTime() {
+        return voiceRecordTime;
+    }
+
+    public void setVoiceRecordTime(long voiceRecordTime) {
+        this.voiceRecordTime = voiceRecordTime;
+    }
+
     @Override
     public String toString() {
         return "MyMessage{" +
@@ -141,6 +179,6 @@ public class MyMessage {
      * 把消息转成json
      */
     public String toJson() {
-        return new Gson().toJson(this);
+        return GsonUtils.getGsonInstance().toJson(this);
     }
 }
