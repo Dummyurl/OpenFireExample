@@ -49,6 +49,9 @@ public class VoiceRecordButton extends Button {
         checkMyPermission();
     }
 
+    /**
+     * 动态获取权限
+     */
     private void checkMyPermission() {
         permissionRecord = ContextCompat.checkSelfPermission(getContext(), Manifest.permission.RECORD_AUDIO)
                 == PackageManager.PERMISSION_GRANTED;
@@ -57,8 +60,9 @@ public class VoiceRecordButton extends Button {
         permissionRead = ContextCompat.checkSelfPermission(getContext(), Manifest.permission.READ_EXTERNAL_STORAGE)
                 == PackageManager.PERMISSION_GRANTED;
         if (!permissionRecord || !permissionWrite || !permissionRead) {
-            ActivityCompat.requestPermissions((Activity) getContext(), new String[]{"android.permission.RECORD_AUDIO",
-                    "android.permission.WRITE_EXTERNAL_STORAGE",
+            ActivityCompat.requestPermissions((Activity) getContext(), new String[]{
+                    "android.permission.RECORD_AUDIO", // 音量权限
+                    "android.permission.WRITE_EXTERNAL_STORAGE", // 读写权限
                     "android.permission.READ_EXTERNAL_STORAGE"}, 1);
         } else {
             permissionRecord = true;
@@ -87,7 +91,6 @@ public class VoiceRecordButton extends Button {
             ToastUtils.showLongToast("请赋予录音和读写权限");
         }
         return super.onTouchEvent(event);
-
     }
 
     /**
@@ -145,7 +148,9 @@ public class VoiceRecordButton extends Button {
         }
     }
 
-
+    /**
+     * 通过handler显示音量大小的Toast
+     */
     private Handler handler = new Handler(){
         @Override
         public void handleMessage(Message msg) {

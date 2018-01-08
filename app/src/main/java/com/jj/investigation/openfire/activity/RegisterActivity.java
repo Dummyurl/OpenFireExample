@@ -110,6 +110,7 @@ public class RegisterActivity extends AppCompatActivity {
             if (result) {
                 ToastUtils.showShortToastSafe("注册成功");
                 startActivity(new Intent(RegisterActivity.this, LoginActivity.class));
+                finish();
             } else {
                 ToastUtils.showShortToastSafe("注册失败");
             }

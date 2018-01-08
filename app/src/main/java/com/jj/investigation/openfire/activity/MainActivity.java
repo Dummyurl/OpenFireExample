@@ -90,9 +90,11 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         tv_title.setText("搜索好友");
         TextView tv_right = (TextView) findViewById(R.id.tv_right);
         tv_right.setVisibility(View.VISIBLE);
+
         tv_right.setText("添加");
         tv_right.setOnClickListener(this);
         tv_title.setOnClickListener(this);
+        findViewById(R.id.btn_logout).setOnClickListener(this);
 
         elv_friend = (ExpandableListView) findViewById(R.id.elv_friend);
     }
@@ -114,8 +116,23 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             case R.id.tv_right:
                 startActivity(new Intent(this, SearchActivity.class));
                 break;
+            case R.id.btn_logout:
+                logout();
+                finish();
+                break;
         }
+    }
 
+
+    /**
+     * 退出登录
+     */
+    private void logout() {
+        final XMPPTCPConnection connection = XmppManager.getConnection();
+        if (connection.isConnected()) {
+            connection.disconnect();
+            startActivity(new Intent(this, LoginActivity.class));
+        }
     }
 
     // 联系人点击事件
@@ -286,7 +303,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     protected void onDestroy() {
         super.onDestroy();
         // 退出登录
-        XmppManager.getConnection().instantShutdown();
+        logout();
     }
 
 }

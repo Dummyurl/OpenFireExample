@@ -26,6 +26,13 @@ public class XmppManager {
         if (xmppConnection == null) {
             xmppConnection = openConnection();
         }
+        if (!xmppConnection.isConnected()) {
+            try {
+                xmppConnection.connect();
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        }
         return xmppConnection;
     }
 

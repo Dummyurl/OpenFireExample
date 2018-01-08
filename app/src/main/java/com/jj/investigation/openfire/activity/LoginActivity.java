@@ -14,6 +14,7 @@ import com.jj.investigation.openfire.bean.User;
 import com.jj.investigation.openfire.retrofit.RetrofitUtil;
 import com.jj.investigation.openfire.smack.XmppManager;
 import com.jj.investigation.openfire.utils.Constants;
+import com.jj.investigation.openfire.utils.Logger;
 import com.jj.investigation.openfire.utils.ShareValue;
 import com.jj.investigation.openfire.utils.ToastUtils;
 import com.jj.investigation.openfire.view.AutoEditText;
@@ -75,6 +76,7 @@ public class LoginActivity extends AppCompatActivity {
         protected Boolean doInBackground(String... params) {
             boolean loginStatus = true;
             XMPPTCPConnection connection = XmppManager.getConnection();
+            Logger.e("登录的状态：" + connection.isConnected());
             try {
                 connection.login(params[0], params[1]);
                 connection.sendStanza(new Presence(Presence.Type.available));
@@ -94,6 +96,7 @@ public class LoginActivity extends AppCompatActivity {
             loadingDialog.hideDialog();
             if (loginStatus) {
                 startActivity(new Intent(LoginActivity.this, MainActivity.class));
+                finish();
             } else {
                 ToastUtils.showShortToastSafe("登录失败");
             }
