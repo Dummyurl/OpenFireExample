@@ -130,7 +130,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     private void logout() {
         final XMPPTCPConnection connection = XmppManager.getConnection();
         if (connection.isConnected()) {
-            connection.disconnect();
+            XmppManager.setConnectionNull();
             startActivity(new Intent(this, LoginActivity.class));
         }
     }

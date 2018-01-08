@@ -57,6 +57,7 @@ public class LoginActivity extends AppCompatActivity {
      * 登录的点击事件
      */
     public void login(View v) {
+        XmppManager.setConnectionNull();
         requestLogin();
     }
 
@@ -83,10 +84,7 @@ public class LoginActivity extends AppCompatActivity {
             } catch (Exception e) {
                 e.printStackTrace();
                 Log.e("登录失败：", e.toString());
-
-                if (!"org.jivesoftware.smack.SmackException$AlreadyLoggedInException: Client is already logged in".equals(e.toString())) {
-                    loginStatus = false;
-                }
+                loginStatus = false;
             }
             return loginStatus;
         }

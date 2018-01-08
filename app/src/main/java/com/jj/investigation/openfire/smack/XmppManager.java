@@ -67,4 +67,20 @@ public class XmppManager {
         return xmppConnection != null && xmppConnection.isConnected();
     }
 
+    /**
+     * 将Connection置为null--功能相当于是退出登录，所以退出登录时就调用了该方法：没有找到的官方的做法
+     * 发现如果是切换用户，即使调用disconnect()方法，在登录时仍然会报错：
+     * org.jivesoftware.smack.SmackException$AlreadyLoggedInException: Client is already logged in
+     * 但是disconect之后并把Connection置为null，再进行切换用户则可登录成功，可能是每个用户都需要一个单独的
+     * Connection，该connection会保存该用户的登录信息
+     */
+    public static void setConnectionNull() {
+        if (xmppConnection != null) {
+            if (isConnected()) {
+                xmppConnection.disconnect();
+            }
+            xmppConnection = null;
+        }
+    }
+
 }
