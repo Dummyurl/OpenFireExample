@@ -63,5 +63,7 @@ public interface RetrofitService {
     @POST(Constants.CHAT_USERS_INFO)
     Observable<ServletData<ArrayList<User>>> getChatUsersInfo(@Field("jids") String uids);
 
+
+
 }
 

@@ -113,6 +113,7 @@ public class ChatActivity extends AppCompatActivity implements ChatManagerListen
     }
 
     private void initData() {
+
         api = RetrofitUtil.createApi();
         // 获取对方的jid以及名称
         jid = getIntent().getStringExtra("jid");
