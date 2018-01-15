@@ -49,6 +49,8 @@ public interface RetrofitService {
     @POST(Constants.ADD_CHAT_RECORD)
     Observable<ServletData> addChatRecord(@PartMap Map<String, RequestBody> map);
 
+
+    // 连天记录列表
     @FormUrlEncoded
     @POST(Constants.ADD_CHAT_RECORD)
     Observable<ServletData> addChatRecord(@Field("msg") String msg,
@@ -62,7 +64,6 @@ public interface RetrofitService {
     @FormUrlEncoded
     @POST(Constants.CHAT_USERS_INFO)
     Observable<ServletData<ArrayList<User>>> getChatUsersInfo(@Field("jids") String uids);
-
 
 
 }

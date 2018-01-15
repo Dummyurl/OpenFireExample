@@ -19,7 +19,9 @@ import com.jj.investigation.openfire.bean.ServletData;
 import com.jj.investigation.openfire.retrofit.RetrofitUtil;
 import com.jj.investigation.openfire.smack.RosterManager;
 import com.jj.investigation.openfire.smack.XmppManager;
+import com.jj.investigation.openfire.utils.Constants;
 import com.jj.investigation.openfire.utils.Logger;
+import com.jj.investigation.openfire.utils.ShareValue;
 import com.jj.investigation.openfire.utils.Utils;
 
 import org.jivesoftware.smack.SmackException;
@@ -42,7 +44,8 @@ import rx.schedulers.Schedulers;
  * 首页
  * Created by ${R.js} on 2017/12/15.
  */
-public class MainActivity extends AppCompatActivity implements View.OnClickListener, ExpandableListView.OnChildClickListener {
+public class MainActivity extends AppCompatActivity implements View.OnClickListener,
+        ExpandableListView.OnChildClickListener {
 
     private ExpandableListView elv_friend;
     private ContactsListAdapter adapter;
@@ -128,6 +131,8 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
      * 退出登录
      */
     private void logout() {
+        ShareValue.getInstance(this).putStringValue(Constants.SP_UID, "");
+        ShareValue.getInstance(this).putStringValue(Constants.SP_JID, "");
         final XMPPTCPConnection connection = XmppManager.getConnection();
         if (connection.isConnected()) {
             XmppManager.setConnectionNull();
@@ -283,9 +288,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribe(new Subscriber<ServletData>() {
                     @Override
-                    public void onCompleted() {
-                    }
-
+                    public void onCompleted() {}
                     @Override
                     public void onError(Throwable e) {
                         Logger.e("添加好友异常：" + e.toString());
@@ -297,13 +300,4 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                     }
                 });
     }
-
-
-    @Override
-    protected void onDestroy() {
-        super.onDestroy();
-        // 退出登录
-        logout();
-    }
-
 }

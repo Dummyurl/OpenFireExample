@@ -54,6 +54,27 @@ public class MyMessage {
         }
     }
 
+    /**
+     * 消息的发送状态
+     */
+    public enum MessageState {
+        // 发送成功
+        Sucess(0),
+        // 发送中
+        Progress(1),
+        // 发送失败
+        Error(2);
+        private int type;
+
+        private MessageState(int type) {
+            this.type = type;
+        }
+
+        public int getType() {
+            return this.type;
+        }
+    }
+
 
     // 发送者
     private String send;
@@ -67,12 +88,15 @@ public class MyMessage {
     private int oprationType = OprationType.Send.getType();
     // 消息的类型：文本、语音......
     private int messageType = MessageType.Text.getType();
+    // 消息的状态
+    private int messageState;
     // 发送文件的文件名称
     private String fileName;
     // 文件在手机本地的路径
     private String fileLocalUrl;
     // 语音文件的时长
     private long voiceRecordTime;
+
 
     /**
      * 文本消息构造方法
@@ -99,6 +123,15 @@ public class MyMessage {
         this.messageType = MessageType.Voice.getType();
         this.fileName = fileName;
         this.voiceRecordTime = voiceRecordTime;
+    }
+
+
+    public int getMessageState() {
+        return messageState;
+    }
+
+    public void setMessageState(int messageState) {
+        this.messageState = messageState;
     }
 
     public String getSend() {

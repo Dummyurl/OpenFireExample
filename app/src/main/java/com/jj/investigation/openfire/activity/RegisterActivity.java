@@ -79,8 +79,8 @@ public class RegisterActivity extends AppCompatActivity {
         @Override
         protected Boolean doInBackground(String... params) {
             // 新版本注册
-            XMPPTCPConnection connection = XmppManager.getConnection();
-            AccountManager accountManager = AccountManager
+            final XMPPTCPConnection connection = XmppManager.getConnection();
+            final AccountManager accountManager = AccountManager
                     .getInstance(connection);
             accountManager.sensitiveOperationOverInsecureConnection(true);
             try {
@@ -88,7 +88,7 @@ public class RegisterActivity extends AppCompatActivity {
                 if (!(params[2] == null || params[2] == "")) {
                     accountManager.createAccount(params[0], params[1]);
                 } else {
-                    Map<String, String> attributes = new HashMap<>();
+                    final Map<String, String> attributes = new HashMap<>();
                     attributes.put("email", params[2]);
                     accountManager.createAccount(params[0], params[1], attributes);
                 }

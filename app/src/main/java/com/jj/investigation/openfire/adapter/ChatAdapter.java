@@ -12,15 +12,17 @@ import android.widget.TextView;
 
 import com.jj.investigation.openfire.R;
 import com.jj.investigation.openfire.bean.MyMessage;
+import com.jj.investigation.openfire.smack.RecordManager;
 import com.jj.investigation.openfire.utils.FileManager;
 import com.jj.investigation.openfire.utils.Logger;
+import com.jj.investigation.openfire.utils.ToastUtils;
 import com.jj.investigation.openfire.utils.Utils;
 import com.jj.investigation.openfire.view.CircleImageView;
 
 import java.util.List;
 
 /**
- * 聊天
+ * 聊天adapter
  * Created by ${R.js} on 2017/12/19.
  */
 
@@ -31,7 +33,7 @@ public class ChatAdapter extends BaseAdapter {
     private LayoutInflater inflater;
     private MediaPlayer mediaPlayer;
 
-    // 文本（代表14中布局类型中的文本布局类型）
+    // 文本（代表14种布局类型中的文本布局类型）
     private static final int MESSAGE_TYPE_TXT_RECE = 0;
     private static final int MESSAGE_TYPE_TXT_SENT = 1;
     // 语音
@@ -85,12 +87,12 @@ public class ChatAdapter extends BaseAdapter {
     @Override
     public int getItemViewType(int position) {
         final MyMessage message = getItem(position);
-        if (message == null) return  -1;
+        if (message == null) return -1;
         if (message.getMessageType() == MyMessage.MessageType.Text.getType()) {
-            return message.getOprationType() == MyMessage.OprationType.Send.getType() ? MESSAGE_TYPE_TXT_SENT :MESSAGE_TYPE_TXT_RECE;
+            return message.getOprationType() == MyMessage.OprationType.Send.getType() ? MESSAGE_TYPE_TXT_SENT : MESSAGE_TYPE_TXT_RECE;
         }
         if (message.getMessageType() == MyMessage.MessageType.Voice.getType()) {
-            return message.getOprationType() == MyMessage.OprationType.Send.getType() ? MESSAGE_TYPE_VOICE_SENT :MESSAGE_TYPE_VOICE_RECE;
+            return message.getOprationType() == MyMessage.OprationType.Send.getType() ? MESSAGE_TYPE_VOICE_SENT : MESSAGE_TYPE_VOICE_RECE;
         }
         return -1;
     }
@@ -105,11 +107,11 @@ public class ChatAdapter extends BaseAdapter {
         ViewHolder holder;
         final MyMessage message = getItem(position);
         if (convertView == null) {
-            if (getItemViewType(position) == MESSAGE_TYPE_TXT_SENT) {
+            if (getItemViewType(position) == MESSAGE_TYPE_TXT_SENT) { // 文本
                 convertView = inflater.inflate(R.layout.item_chat_text_sent, parent, false);
             } else if (getItemViewType(position) == MESSAGE_TYPE_TXT_RECE) {
                 convertView = inflater.inflate(R.layout.item_chat_text_rece, parent, false);
-            } else if (getItemViewType(position) == MESSAGE_TYPE_VOICE_RECE) {
+            } else if (getItemViewType(position) == MESSAGE_TYPE_VOICE_RECE) { // 语音
                 convertView = inflater.inflate(R.layout.item_chat_voice_rece, parent, false);
             } else if (getItemViewType(position) == MESSAGE_TYPE_VOICE_SENT) {
                 convertView = inflater.inflate(R.layout.item_chat_voice_sent, parent, false);
@@ -121,34 +123,33 @@ public class ChatAdapter extends BaseAdapter {
         }
 
         // 设置布局的内容
-        if (message.getMessageType() == MyMessage.MessageType.Text.getType()) {
+        if (message.getMessageType() == MyMessage.MessageType.Text.getType()) { // 文本
             holder.tv_message_text.setText(message.getContent());
-        } else if (message.getMessageType() == MyMessage.MessageType.Voice.getType()){
+        } else if (message.getMessageType() == MyMessage.MessageType.Voice.getType()) { // 语音
             holder.tv_voice_duration.setText(message.getVoiceRecordTime() + "''");
+            // 语音的点击事件
             holder.layout_voice.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
 
-                    final String filePath = FileManager.searchFile(message.getFileName(), "voice");
-                    Logger.e("文件的路径：" + filePath);
-                    if (!Utils.isNull(filePath)) {
-                        try {
-                            Logger.e("文件的路径：" + filePath);
-
-                            mediaPlayer.setDataSource(filePath);
-                            mediaPlayer.prepare();
-                            mediaPlayer.start();
-                        } catch (Exception e) {
-                            e.printStackTrace();
+                    if (message.getMessageState() == MyMessage.MessageState.Sucess.getType()) {
+                        final String filePath = FileManager.searchFile(message.getFileName(), "voice");
+                        Logger.e("文件的路径：" + filePath);
+                        if (!Utils.isNull(filePath)) {
+                            try {
+                                Logger.e("文件的路径：" + filePath);
+                                RecordManager.playAudio(context, filePath);
+                            } catch (Exception e) {
+                                e.printStackTrace();
+                            }
                         }
+                    } else {
+                        ToastUtils.showLongToast("语音文件异常");
                     }
                 }
             });
         }
         holder.tv_chat_time.setText(message.getData());
-
-        Logger.e("语音的URL：" + message.getFileName());
-
 
         return convertView;
     }

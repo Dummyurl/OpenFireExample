@@ -133,8 +133,6 @@ public class LoginActivity extends AppCompatActivity {
                                     String.valueOf(user.getId()));
                             ShareValue.getInstance(LoginActivity.this).putStringValue(Constants.SP_JID,
                                     String.valueOf(user.getJid()));
-                            String jid = ShareValue.getInstance(LoginActivity.this).getStringValue(Constants.SP_JID);
-
                             Log.e("登录成功", data.toString());
                         } else {
                             loadingDialog.hideDialog();

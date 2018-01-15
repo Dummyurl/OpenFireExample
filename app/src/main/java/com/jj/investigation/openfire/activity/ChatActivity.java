@@ -153,9 +153,7 @@ public class ChatActivity extends AppCompatActivity implements ChatManagerListen
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribe(new Subscriber<ServletData<ArrayList<User>>>() {
                     @Override
-                    public void onCompleted() {
-                    }
-
+                    public void onCompleted() {}
                     @Override
                     public void onError(Throwable e) {
                         Log.e("查询失败", e.toString());
@@ -246,9 +244,7 @@ public class ChatActivity extends AppCompatActivity implements ChatManagerListen
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribe(new Subscriber<ServletData>() {
                     @Override
-                    public void onCompleted() {
-                    }
-
+                    public void onCompleted() {}
                     @Override
                     public void onError(Throwable e) {
                         Logger.e("添加消息异常：" + e.toString());
@@ -301,7 +297,7 @@ public class ChatActivity extends AppCompatActivity implements ChatManagerListen
 
     /**
      * OpenFire上传文件的监听
-     * 只要对方一发送问件，这里就可以监听到，在这里进行文件的接收
+     * 只要对方一发送文件，这里就可以监听到，在这里进行文件的接收，也就是文件的下载
      */
     @Override
     public void fileTransferRequest(FileTransferRequest request) {
@@ -311,21 +307,37 @@ public class ChatActivity extends AppCompatActivity implements ChatManagerListen
         // 1.获取文件
         final File file = new File(FileManager.createFile("voice"), accept.getFileName());
 
-
         try {
             // 2.下载文件
             accept.recieveFile(file);
             Thread.sleep(3000);
-            // 3.判断文件是否下载成功
-            Logger.e("文件的下载状态：" + accept.getStatus());
+            // 3.判断文件是否下载成功:complete--下载成功，其他为失败
             if (accept.getStatus() == FileTransfer.Status.complete) {
                 android.os.Message message = handler.obtainMessage(FILE_DOWNLOAD_SUCESS, file.getName());
                 handler.sendMessage(message);
+                updataMessageState(file, MyMessage.MessageState.Sucess);
+            } else {
+                updataMessageState(file, MyMessage.MessageState.Error);
             }
         } catch (Exception e) {
             e.printStackTrace();
             Logger.e("下载文件出错：" + e.toString());
         }
+    }
 
+    /**
+     * 更新adapter中文件下载的状态
+     * 循环所有消息下载的文件，如果文件如当前下载的文件相同，则设置当前消息的文件下载状态
+     * @param file 下载的文件
+     * @param messageState 下载文件的状态
+     */
+    public void updataMessageState(File file, MyMessage.MessageState messageState) {
+        final int count = adapter.getCount();
+        for (int i = 0; i < count; i++) {
+            final MyMessage message = adapter.getItem(i);
+            if (message.getFileName().equals(file.getName())) {
+                message.setMessageState(messageState.getType());
+            }
+        }
     }
 }
