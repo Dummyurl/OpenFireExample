@@ -8,10 +8,10 @@ package com.jj.investigation.openfire.utils;
 public class Constants {
 
     // 本地
-//    public static final String BASE_URL = "http://192.168.1.163:8080/WebApplication/";
+    public static final String BASE_URL = "http://192.168.1.126:8080/WebApplication/";
 
     // 阿里服务器
-    public static final String BASE_URL = "http://39.106.120.166:8080/WebApplication/";
+//    public static final String BASE_URL = "http://39.106.120.166:8080/WebApplication/";
 
     // 注册
     public static final String REGIST = "registerServlet";
@@ -25,6 +25,8 @@ public class Constants {
     public static final String CHAT_USERS_INFO = "chatUserInfo";
     // 添加好友
     public static final String ADD_FRIEND = "addFriend";
+    // 创建群组
+    public static final String GROUP_CREATE = "groupCreate";
 
 
     // SharePreference

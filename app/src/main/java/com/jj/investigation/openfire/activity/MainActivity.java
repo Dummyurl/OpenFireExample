@@ -42,6 +42,21 @@ import rx.schedulers.Schedulers;
 
 /**
  * 首页
+ *
+ * 对数据库的说明：
+ *
+ *  刚开始使用OpenFire时，什么都不知道，了解的比较少，自己也不会写后台接口，对创建数据库、数据表
+ *  以及对数据表的增删改查都不是很熟悉，所以做了很多多余的操作，比如OpenFire会在自己指定的数据库
+ *  创建需要的数据表，包括user表、群组表等，但是当时害怕直接操作这些表后会造成破坏，所以在写java
+ *  接口时又创建了一个新的数据库service，这个数据库里面又创建了一些数据表，这些数据表是与OpenFire
+ *  给我们创建的是重复的，所有如果进行某些操作，比如注册一个用户，会现在OpenFire创建的数据表中增加
+ *  一条数据，成功后自己又需要发起网络请求，方位自己写的java接口，然后又在自己创建的数据表中增加了
+ *  一条数据。其实这些操作是不必要的，也不可行，因为在一个java web项目中只能指定一个数据库，不能
+ *  同时操作两个数据库，这样就会造成一些问题，但是当发现时已经写了好几个接口了，已经不行修改了。。。
+ *  等到真正运行到公司项目时，一定要把数据表放在一个数据库内，这样可以关联操作。在注册时直接操作
+ *  OpenFire给我们创建的数据表即可，其他数据表也是同样的道理，如果需要使用额外的数据表，也写在同
+ *  一个数据库内。
+ *
  * Created by ${R.js} on 2017/12/15.
  */
 public class MainActivity extends AppCompatActivity implements View.OnClickListener,
@@ -97,6 +112,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         tv_right.setText("添加");
         tv_right.setOnClickListener(this);
         tv_title.setOnClickListener(this);
+        findViewById(R.id.btn_create_group).setOnClickListener(this);
         findViewById(R.id.btn_logout).setOnClickListener(this);
 
         elv_friend = (ExpandableListView) findViewById(R.id.elv_friend);
@@ -118,6 +134,9 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 break;
             case R.id.tv_right:
                 startActivity(new Intent(this, SearchActivity.class));
+                break;
+            case R.id.btn_create_group:
+                startActivity(new Intent(this, GroupManagerActivity.class));
                 break;
             case R.id.btn_logout:
                 logout();

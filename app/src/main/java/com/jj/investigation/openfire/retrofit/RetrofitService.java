@@ -66,5 +66,12 @@ public interface RetrofitService {
     Observable<ServletData<ArrayList<User>>> getChatUsersInfo(@Field("jids") String uids);
 
 
+    // 创建群组
+    @FormUrlEncoded
+    @POST(Constants.GROUP_CREATE)
+    Observable<ServletData> createGroup(@Field("groupname") String groupname,
+                                        @Field("gorupdesc") String gorupdesc,
+                                        @Field("grouppassword") String grouppassword);
+
 }
 
