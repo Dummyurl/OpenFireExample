@@ -4,6 +4,8 @@ import com.jj.investigation.openfire.bean.IMGroup;
 import com.jj.investigation.openfire.utils.Logger;
 
 import org.jivesoftware.smack.tcp.XMPPTCPConnection;
+import org.jivesoftware.smackx.bookmarks.BookmarkManager;
+import org.jivesoftware.smackx.bookmarks.BookmarkedConference;
 import org.jivesoftware.smackx.muc.DiscussionHistory;
 import org.jivesoftware.smackx.muc.HostedRoom;
 import org.jivesoftware.smackx.muc.MultiUserChat;
@@ -99,11 +101,12 @@ public class GroupManager {
 
     /**
      * 加入群
-     * @param groupName 群名称
-     * @param groupPwd 群密码
+     *
+     * @param groupName     群名称
+     * @param groupPwd      群密码
      * @param groupnickName 你在该群里要显示的昵称
      */
-    public static void chatRoomJoin(XMPPTCPConnection connection, String groupName,
+    public static void groupJoin(XMPPTCPConnection connection, String groupName,
                                     String groupPwd, String groupnickName) throws Exception {
 
         // 群聊管理器--创建群组
@@ -119,7 +122,7 @@ public class GroupManager {
     }
 
     /**
-     * 获取用户已经加入的群
+     * 获取用户已经加入的群（临时会话群）
      */
     public static List<IMGroup> getJoinGroupList(XMPPTCPConnection connection) throws Exception {
         final List<IMGroup> chatRooms = new ArrayList<>();
@@ -145,5 +148,55 @@ public class GroupManager {
             chatRooms.add(group);
         }
         return chatRooms;
+    }
+
+    /**
+     * 收藏一个群：在创建群和加入群后调用。
+     * 以上创建群组和加入群组只是临时的，虽然创建的群组会一直存在，但是创建者在群里的成员状态却是临时的，
+     * 比如我创建了一个群，则我加入的群就有该群，但是一旦退出OpenFire的登录，再进去发现我加入的群已经没有了
+     * 这个群，加入群也是同样的道理，并且从OpenFire的管理页面也可以看到，创建或者加入群后，群成员有此人，
+     * 但是一旦调用退出的动作，则群成员不再有该人
+     */
+    public static void collectGroups(XMPPTCPConnection connection, String groupName,
+                                     String groupPwd, String groupnickName) throws Exception {
+        // 获取收藏群管理器
+        final BookmarkManager bookmarkManager = BookmarkManager.getBookmarkManager(connection);
+        final String jid = groupName + CONFERENCE + connection.getServiceName();
+        // 收藏群组，也就是要永久加入该群，成为该群的成员
+        bookmarkManager.addBookmarkedConference(groupName, jid, true, groupnickName,
+                groupPwd);
+    }
+
+    /**
+     * 获取我加入的群组列表（永久的）
+     */
+    public static List<IMGroup> getMyJoinGroupsEver(XMPPTCPConnection connection) throws Exception {
+        final List<IMGroup> groupList = new ArrayList<>();
+        // 获取群聊管理器
+        final MultiUserChatManager multiUserChatManager = MultiUserChatManager.getInstanceFor(connection);
+        // 获取收藏群组管理器
+        final BookmarkManager bookmarkManager = BookmarkManager.getBookmarkManager(connection);
+        // 获取收藏的群组列表
+        final List<BookmarkedConference> bookmarkedConferences = bookmarkManager.getBookmarkedConferences();
+        if (bookmarkedConferences == null || bookmarkedConferences.size() == 0) {
+            return null;
+        }
+        IMGroup group = null;
+        for (BookmarkedConference conference : bookmarkedConferences) {
+            group = new IMGroup();
+            group.setJid(conference.getJid());
+            group.setGroupname(conference.getName());
+            group.setGrouppassword(conference.getPassword());
+
+            // 上面只是获取到了收藏的群组列表，还需要把当前用户加入到群里面(否则无法聊天)
+            groupJoin(connection, conference.getName(), conference.getPassword(), conference.getNickname());
+            RoomInfo roomInfo = multiUserChatManager.getRoomInfo(conference.getJid());
+            // 获取群组的描述
+            group.setGorupdesc(roomInfo.getDescription());
+            // 获取群组的成员数量
+            group.setGroupnumber(roomInfo.getOccupantsCount() + "");
+            groupList.add(group);
+        }
+        return groupList;
     }
 }

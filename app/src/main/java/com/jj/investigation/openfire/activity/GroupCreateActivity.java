@@ -19,7 +19,7 @@ import com.jj.investigation.openfire.utils.Utils;
 import com.jj.investigation.openfire.view.LoadingDialog;
 
 import org.jivesoftware.smack.tcp.XMPPTCPConnection;
-import org.jivesoftware.smackx.muc.MultiUserChat;
+import org.jxmpp.util.XmppStringUtils;
 
 import rx.Subscriber;
 import rx.android.schedulers.AndroidSchedulers;
@@ -139,16 +139,19 @@ public class GroupCreateActivity extends AppCompatActivity implements View.OnCli
 
         @Override
         protected Boolean doInBackground(Void... params) {
-            boolean createStatus = false;
             final XMPPTCPConnection connection = XmppManager.getConnection();
             try {
-                final MultiUserChat multiUserChat = GroupManager.groupCreate(connection, name, pwd, desc);
-                createStatus = true;
+                // 获取用户的昵称
+                final String nickName = XmppStringUtils.parseLocalpart(connection
+                        .getUser());
+                GroupManager.groupCreate(connection, name, pwd, desc);
+                GroupManager.collectGroups(connection, name, pwd, nickName);
             } catch (Exception e) {
                 e.printStackTrace();
                 Logger.e("创建群组异常：" + e.toString());
+                return false;
             }
-            return createStatus;
+            return true;
         }
 
         @Override
@@ -156,6 +159,7 @@ public class GroupCreateActivity extends AppCompatActivity implements View.OnCli
             super.onPostExecute(aBoolean);
             if (aBoolean) {
                 ToastUtils.showLongToast("创建群组成功");
+                finish();
             } else {
                 ToastUtils.showLongToast("创建群组失败");
             }

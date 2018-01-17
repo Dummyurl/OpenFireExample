@@ -10,6 +10,7 @@ import android.widget.TextView;
 import com.jj.investigation.openfire.R;
 import com.jj.investigation.openfire.bean.IMGroup;
 
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -19,29 +20,31 @@ import java.util.List;
 
 public class MyJoinGroupsAdapter extends BaseAdapter {
 
-    private List<IMGroup> groups;
+    private List<IMGroup> groupsList;
     private LayoutInflater inflater;
 
     public MyJoinGroupsAdapter(Context context) {
         inflater = LayoutInflater.from(context);
+        groupsList = new ArrayList<>();
     }
 
     /**
      * 加载数据
      */
     public void setGroups(List<IMGroup> groups) {
-        this.groups = groups;
+        groupsList.clear();
+        groupsList.addAll(groups);
     }
 
     @Override
     public int getCount() {
-        return groups == null ? 0 : groups.size();
+        return groupsList == null ? 0 : groupsList.size();
     }
 
     @Override
     public IMGroup getItem(int position) {
-        if (groups != null && groups.get(position) != null) {
-            return groups.get(position);
+        if (groupsList != null && groupsList.get(position) != null) {
+            return groupsList.get(position);
         }
         return null;
     }
@@ -56,7 +59,7 @@ public class MyJoinGroupsAdapter extends BaseAdapter {
         convertView = inflater.inflate(R.layout.item_my_join_group, parent,
                 false);
         TextView tv_name = (TextView) convertView.findViewById(R.id.tv_name);
-        tv_name.setText(groups.get(position).getGroupname());
+        tv_name.setText(groupsList.get(position).getGroupname());
         return convertView;
     }
 }

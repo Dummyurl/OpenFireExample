@@ -13,6 +13,7 @@ import com.jj.investigation.openfire.smack.GroupManager;
 import com.jj.investigation.openfire.smack.XmppManager;
 import com.jj.investigation.openfire.utils.Logger;
 import com.jj.investigation.openfire.utils.ToastUtils;
+import com.jj.investigation.openfire.view.LoadingDialog;
 
 import org.jivesoftware.smack.tcp.XMPPTCPConnection;
 
@@ -29,6 +30,7 @@ public class GroupJoinActivity extends AppCompatActivity implements View.OnClick
     private String groupName;
     private String groupPwd;
     private String groupnickName;
+    private LoadingDialog dialog;
 
 
     @Override
@@ -40,6 +42,7 @@ public class GroupJoinActivity extends AppCompatActivity implements View.OnClick
     }
 
     private void initView() {
+        dialog = new LoadingDialog(this);
         TextView tv_left = (TextView) findViewById(R.id.tv_left);
         tv_left.setVisibility(View.VISIBLE);
         tv_left.setOnClickListener(this);
@@ -71,6 +74,7 @@ public class GroupJoinActivity extends AppCompatActivity implements View.OnClick
         groupnickName = et_chat_room_nickname.getText().toString();
         // 创建房间(群组)
         new ChatRoomJoinTask().execute();
+        dialog.showDialog("请稍后...");
     }
 
     /**
@@ -82,7 +86,8 @@ public class GroupJoinActivity extends AppCompatActivity implements View.OnClick
         protected Boolean doInBackground(Void... params) {
             XMPPTCPConnection connection = XmppManager.getConnection();
             try {
-                GroupManager.chatRoomJoin(connection, groupName, groupPwd, groupnickName);
+                GroupManager.groupJoin(connection, groupName, groupPwd, groupnickName);
+                GroupManager.collectGroups(connection, groupName, groupPwd, groupnickName);
             } catch (Exception e) {
                 e.printStackTrace();
                 Logger.e("加入群组失败：" + e.toString());
@@ -96,9 +101,11 @@ public class GroupJoinActivity extends AppCompatActivity implements View.OnClick
             super.onPostExecute(result);
             if (result) {
                 ToastUtils.showShortToast("加入群组成功");
+                finish();
             } else {
                 ToastUtils.showShortToast("加入群组失败");
             }
+            dialog.hideDialog();
         }
 
     }

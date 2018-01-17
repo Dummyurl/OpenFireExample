@@ -30,6 +30,8 @@ public class GroupManagerActivity extends AppCompatActivity implements View.OnCl
 
     private ListView lv_chat_room;
     private MyJoinGroupsAdapter adapter;
+    private static final int GROUP_CREATE = 0;
+    private static final int GROUP_JOIN = 1;
 
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
@@ -53,6 +55,13 @@ public class GroupManagerActivity extends AppCompatActivity implements View.OnCl
     private void initData() {
         adapter = new MyJoinGroupsAdapter(this);
         lv_chat_room.setAdapter(adapter);
+        loadMyJoinGroups();
+    }
+
+    /**
+     * 加载我加入的群列表
+     */
+    private void loadMyJoinGroups() {
         new MyJoinGroupsLoadTask().execute();
     }
 
@@ -60,14 +69,25 @@ public class GroupManagerActivity extends AppCompatActivity implements View.OnCl
      * 创建群组的点击事件
      */
     public void groupCreate(View view) {
-        startActivity(new Intent(this, GroupCreateActivity.class));
+        startActivityForResult(new Intent(this, GroupCreateActivity.class), GROUP_CREATE);
+    }
+
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+        switch (requestCode) {
+            case GROUP_CREATE:
+            case GROUP_JOIN:
+                loadMyJoinGroups();
+                break;
+        }
     }
 
     /**
      * 加入群组的点击事件
      */
     public void groupJoin(View view) {
-        startActivity(new Intent(this, GroupJoinActivity.class));
+        startActivityForResult(new Intent(this, GroupJoinActivity.class), GROUP_JOIN);
     }
 
     @Override
@@ -88,7 +108,7 @@ public class GroupManagerActivity extends AppCompatActivity implements View.OnCl
         protected Boolean doInBackground(Void... params) {
             final XMPPTCPConnection connection = XmppManager.getConnection();
             try {
-                final List<IMGroup> groupList = GroupManager.getJoinGroupList(connection);
+                final List<IMGroup> groupList = GroupManager.getMyJoinGroupsEver(connection);
                 if (groupList != null && groupList.size() > 0) {
                     adapter.setGroups(groupList);
                 } else {
