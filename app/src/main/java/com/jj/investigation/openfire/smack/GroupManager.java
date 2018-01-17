@@ -1,11 +1,14 @@
 package com.jj.investigation.openfire.smack;
 
+import com.jj.investigation.openfire.bean.IMGroup;
 import com.jj.investigation.openfire.utils.Logger;
 
 import org.jivesoftware.smack.tcp.XMPPTCPConnection;
 import org.jivesoftware.smackx.muc.DiscussionHistory;
+import org.jivesoftware.smackx.muc.HostedRoom;
 import org.jivesoftware.smackx.muc.MultiUserChat;
 import org.jivesoftware.smackx.muc.MultiUserChatManager;
+import org.jivesoftware.smackx.muc.RoomInfo;
 import org.jivesoftware.smackx.xdata.Form;
 import org.jivesoftware.smackx.xdata.FormField;
 
@@ -13,6 +16,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
+import java.util.Set;
 
 /**
  * 群组管理类:
@@ -112,5 +116,34 @@ public class GroupManager {
         final DiscussionHistory discussionHistory = new DiscussionHistory();
         discussionHistory.setSince(new Date(2018, 1, 1));
         multiUserChat.join(groupnickName, groupPwd, discussionHistory, 8 * 1000);
+    }
+
+    /**
+     * 获取用户已经加入的群
+     */
+    public static List<IMGroup> getJoinGroupList(XMPPTCPConnection connection) throws Exception {
+        final List<IMGroup> chatRooms = new ArrayList<>();
+        MultiUserChatManager manager = MultiUserChatManager
+                .getInstanceFor(connection);
+        // 获取已加入的房间列表
+        List<HostedRoom> hostedRooms = manager.getHostedRooms(connection.getServiceName());
+        Logger.e("所有群：" + hostedRooms);
+        Set<String> groups = manager.getJoinedRooms();
+        IMGroup group = null;
+        for (String roomName : groups) {
+            // 获取指定的房间信息
+            RoomInfo roomInfo = manager.getRoomInfo(roomName);
+            group = new IMGroup();
+            // 获取jid
+            group.setJid(roomInfo.getRoom());
+            // 群名称
+            group.setGroupname(roomInfo.getName());
+            // 群描述
+            group.setGorupdesc(roomInfo.getDescription());
+            // 群人数
+            group.setGroupnumber(roomInfo.getOccupantsCount() + "");
+            chatRooms.add(group);
+        }
+        return chatRooms;
     }
 }
