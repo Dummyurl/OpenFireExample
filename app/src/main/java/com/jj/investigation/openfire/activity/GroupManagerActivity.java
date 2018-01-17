@@ -6,6 +6,7 @@ import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.support.v7.app.AppCompatActivity;
 import android.view.View;
+import android.widget.AdapterView;
 import android.widget.ListView;
 import android.widget.TextView;
 
@@ -26,7 +27,7 @@ import java.util.List;
  * Created by ${R.js} on 2018/1/16.
  */
 
-public class GroupManagerActivity extends AppCompatActivity implements View.OnClickListener {
+public class GroupManagerActivity extends AppCompatActivity implements View.OnClickListener, AdapterView.OnItemClickListener {
 
     private ListView lv_chat_room;
     private MyJoinGroupsAdapter adapter;
@@ -55,6 +56,7 @@ public class GroupManagerActivity extends AppCompatActivity implements View.OnCl
     private void initData() {
         adapter = new MyJoinGroupsAdapter(this);
         lv_chat_room.setAdapter(adapter);
+        lv_chat_room.setOnItemClickListener(this);
         loadMyJoinGroups();
     }
 
@@ -97,6 +99,16 @@ public class GroupManagerActivity extends AppCompatActivity implements View.OnCl
                 finish();
                 break;
         }
+    }
+
+    /**
+     * 群组列表条目的点击事件
+     */
+    @Override
+    public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+        final Intent intent = new Intent(this, GroupChatActivity.class);
+        intent.putExtra("groupInfo", adapter.getItem(position));
+        startActivity(intent);
     }
 
     /**

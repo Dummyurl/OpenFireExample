@@ -1,11 +1,13 @@
 package com.jj.investigation.openfire.bean;
 
+import java.io.Serializable;
+
 /**
  * 群组信息
  * <p>
  * Created by ${R.js} on 2018/1/15.
  */
-public class IMGroup {
+public class IMGroup implements Serializable {
 
     // 群组的jid
     private String jid;

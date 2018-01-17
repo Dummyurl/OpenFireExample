@@ -56,7 +56,7 @@ import rx.schedulers.Schedulers;
  */
 
 public class ChatActivity extends AppCompatActivity implements ChatManagerListener, ChatMessageListener,
-        VoiceRecordButton.OnVoiceRecordListener, FileTransferListener {
+        VoiceRecordButton.OnVoiceRecordListener, FileTransferListener, View.OnClickListener {
 
     private EditText et_input_sms;
     private String name;
@@ -105,6 +105,9 @@ public class ChatActivity extends AppCompatActivity implements ChatManagerListen
     }
 
     private void initView() {
+        TextView tv_left = (TextView) findViewById(R.id.tv_left);
+        tv_left.setVisibility(View.VISIBLE);
+        tv_left.setOnClickListener(this);
         tv_title = (TextView) findViewById(R.id.tv_title);
         et_input_sms = (EditText) findViewById(R.id.et_input_sms);
         lv_message_chat = (ListView) findViewById(R.id.lv_message_chat);
@@ -139,6 +142,15 @@ public class ChatActivity extends AppCompatActivity implements ChatManagerListen
         // 获取OpenFire的文件管理器并添加上传文件的监听
         fileTransferManager = FileTransferManager.getInstanceFor(connection);
         fileTransferManager.addFileTransferListener(this);
+    }
+
+    @Override
+    public void onClick(View v) {
+        switch (v.getId()) {
+            case R.id.tv_left:
+                finish();
+                break;
+        }
     }
 
     /**
@@ -201,7 +213,7 @@ public class ChatActivity extends AppCompatActivity implements ChatManagerListen
     @Override
     public void processMessage(Chat chat, Message message) {
         final String json = message.getBody();
-        MyMessage receiveMessage = GsonUtils.getGsonInstance().fromJson(json, MyMessage.class);
+        final MyMessage receiveMessage = GsonUtils.getGsonInstance().fromJson(json, MyMessage.class);
         messageList.add(receiveMessage);
         handler.sendEmptyMessage(MESSAGE_RECEIVE);
     }
