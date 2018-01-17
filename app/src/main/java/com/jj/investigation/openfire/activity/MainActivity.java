@@ -41,7 +41,10 @@ import rx.android.schedulers.AndroidSchedulers;
 import rx.schedulers.Schedulers;
 
 /**
- * 首页
+ * 首页:
+ *
+ * 刚开始时只是做demo，所以页面完全没有做封装提取，等把功能都做完后在进行封装吧，因为功能
+ * 没做完一直吸引着，没心情花时间封装
  *
  * 对数据库的说明：
  *
@@ -144,7 +147,6 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 break;
         }
     }
-
 
     /**
      * 退出登录

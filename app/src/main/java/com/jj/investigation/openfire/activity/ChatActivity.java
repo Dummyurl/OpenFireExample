@@ -49,7 +49,8 @@ import rx.android.schedulers.AndroidSchedulers;
 import rx.schedulers.Schedulers;
 
 /**
- * 聊天界面
+ * 聊天界面（单聊）：
+ * 因为单聊和群聊有很多不同的地方，为了方便看单聊和群聊做成了两个页面
  * 使用当前用户和对方的jid是为了聊天使用，OpenFire只认识jid。
  * 根据jid从自己的平台查询对应的用户，拿到用户在自己平台的信息，这个是在聊天界面显示时使用
  * Created by ${R.js} on 2017/12/19.
@@ -72,6 +73,8 @@ public class ChatActivity extends AppCompatActivity implements ChatManagerListen
     // 消息集合
     private List<MyMessage> messageList = new ArrayList<>();
     private ChatAdapter adapter;
+    // 文件监听接收类，只支持单聊，群聊不支持
+    private FileTransferManager fileTransferManager;
     // 接收消息
     private static final int MESSAGE_RECEIVE = 0;
     // 文件下载成功
@@ -94,7 +97,7 @@ public class ChatActivity extends AppCompatActivity implements ChatManagerListen
             }
         }
     };
-    private FileTransferManager fileTransferManager;
+
 
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
@@ -296,7 +299,6 @@ public class ChatActivity extends AppCompatActivity implements ChatManagerListen
 
         // 发送消息
         try {
-            // 发送文本
             chat.sendMessage(remoteMessage.toJson());
             // 发送语音
             final OutgoingFileTransfer outgoingFileTransfer = fileTransferManager.

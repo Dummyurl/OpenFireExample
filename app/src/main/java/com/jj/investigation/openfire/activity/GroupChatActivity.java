@@ -20,6 +20,7 @@ import com.jj.investigation.openfire.retrofit.RetrofitUtil;
 import com.jj.investigation.openfire.smack.XmppManager;
 import com.jj.investigation.openfire.utils.DateUtils;
 import com.jj.investigation.openfire.utils.GsonUtils;
+import com.jj.investigation.openfire.utils.Logger;
 import com.jj.investigation.openfire.view.VoiceRecordButton;
 
 import org.jivesoftware.smack.MessageListener;
@@ -151,7 +152,30 @@ public class GroupChatActivity extends AppCompatActivity implements
 
     @Override
     public void onRecordEnd(File recordFile, long duration) {
+        final String content = et_input_sms.getText().toString().trim();
+        // 发送消息(该消息只用来在本地显示)
+        final MyMessage localMessage = new MyMessage(currentUser, jid, content,
+                DateUtils.newDate(), MyMessage.OprationType.Send.getType(),
+                recordFile.getName(), duration);
+        // 根据决定路径来找录音文件播放
+        localMessage.setFileLocalUrl(recordFile.getAbsolutePath());
+        Logger.e("绝对路径：" + recordFile.getAbsolutePath());
 
+        messageList.add(localMessage);
+        adapter.notifyDataSetChanged();
+
+        // 要发送的消息(文本)，发送的消息需要别人来接收，所以发送时OprationType的值应该为Receiver而不是send
+        final MyMessage remoteMessage = new MyMessage(currentUser, jid, content,
+                DateUtils.newDate(), MyMessage.OprationType.Receiver.getType(),
+                recordFile.getName(), duration);
+
+        // 发送消息
+        try {
+            chat.sendMessage(remoteMessage.toJson());
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
     }
 
     /**
@@ -159,7 +183,9 @@ public class GroupChatActivity extends AppCompatActivity implements
      * 群组聊天，自己也会接收到自己的消息，需要过滤掉
      * 从消息的具体消息中可以看到有一个send字段，如果这个send字段是自己，
      * 则在接收消息的时候可以直接过滤掉。具体的消息在body字段中，可以把body
-     * 这个字符串转成自定义的MyMessage对象，从中获取send内容
+     * 这个字符串转成自定义的MyMessage对象，从中获取send内容。
+     * 不能根据message.getFrom()来判断，因为getFrom获取的是群的jid，不是
+     * 发送该消息的用户的jid。
      */
     @Override
     public void processMessage(Message message) {

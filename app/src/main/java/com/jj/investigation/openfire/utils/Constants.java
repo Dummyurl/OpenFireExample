@@ -27,6 +27,10 @@ public class Constants {
     public static final String ADD_FRIEND = "addFriend";
     // 创建群组
     public static final String GROUP_CREATE = "groupCreate";
+    // 上传文件
+    public static final String UPLOAD_FILE = "uploadFile";
+
+
 
 
     // SharePreference
