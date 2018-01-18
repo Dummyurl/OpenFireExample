@@ -1,6 +1,9 @@
 package com.jj.investigation.openfire.activity;
 
 import android.content.BroadcastReceiver;
+import android.content.Context;
+import android.content.Intent;
+import android.content.IntentFilter;
 import android.os.Bundle;
 import android.os.Handler;
 import android.support.annotation.Nullable;
@@ -17,13 +20,19 @@ import com.jj.investigation.openfire.bean.IMGroup;
 import com.jj.investigation.openfire.bean.MyMessage;
 import com.jj.investigation.openfire.retrofit.RetrofitService;
 import com.jj.investigation.openfire.retrofit.RetrofitUtil;
+import com.jj.investigation.openfire.service.DownLoadService;
 import com.jj.investigation.openfire.smack.XmppManager;
+import com.jj.investigation.openfire.utils.Constants;
 import com.jj.investigation.openfire.utils.DateUtils;
+import com.jj.investigation.openfire.utils.FileManager;
 import com.jj.investigation.openfire.utils.GsonUtils;
 import com.jj.investigation.openfire.utils.Logger;
+import com.jj.investigation.openfire.utils.ToastUtils;
 import com.jj.investigation.openfire.view.VoiceRecordButton;
+import com.loopj.android.http.AsyncHttpResponseHandler;
 
 import org.jivesoftware.smack.MessageListener;
+import org.jivesoftware.smack.SmackException;
 import org.jivesoftware.smack.packet.Message;
 import org.jivesoftware.smack.tcp.XMPPTCPConnection;
 import org.jivesoftware.smackx.muc.MultiUserChat;
@@ -35,8 +44,13 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * 群聊界面
- * 以后要与单聊界面改成同一个
+ * 群聊界面:
+ * 因为与单聊还有很多不同，所以干脆写了两个页面，方便查看，如果非得放在一个Activity也可以，多做一些判断即可，
+ * 此时做只是先为了能赶快完成功能，做出demo
+ * 群组发送语音与单聊发送语音不一样，单聊发送语音有专门针对文件接收的监听，但群聊没有。群聊语音的实现原理是：
+ * 录音完毕后先把语音文件上传到服务器（自己的服务器），上传成功后返回语音文件在服务器的存放地址，然后把地址
+ * 组装成需要OpenFire发送的消息JavaBean对象，然后发送这个语音文件，此时的发送是通过OpenFire的服务器发送的，
+ * 发送后，群组接收到消息，消息中带有语音在服务器存放的URL，在群里点击消息时通过URL下载语音文件。
  * Created by ${R.js} on 2018/1/17.
  */
 
@@ -84,6 +98,8 @@ public class GroupChatActivity extends AppCompatActivity implements
 
         initView();
         initData();
+        initService();
+        initReceiver();
     }
 
     private void initView() {
@@ -114,6 +130,23 @@ public class GroupChatActivity extends AppCompatActivity implements
         final MultiUserChatManager chatManager = MultiUserChatManager.getInstanceFor(connection);
         chat = chatManager.getMultiUserChat(jid);
         chat.addMessageListener(this);
+    }
+
+    /**
+     * 启动文件下载的服务
+     */
+    private void initService() {
+        startService(new Intent(this, DownLoadService.class));
+    }
+
+
+    /**
+     * 注册文件下载成功的广播
+     */
+    private void initReceiver() {
+        receiver = new DownloadSuccessReceiver();
+        final IntentFilter filter = new IntentFilter(DownLoadService.FILE_DOWNLOAD_SUCCESS);
+        registerReceiver(receiver, filter);
     }
 
     @Override
@@ -151,7 +184,7 @@ public class GroupChatActivity extends AppCompatActivity implements
     }
 
     @Override
-    public void onRecordEnd(File recordFile, long duration) {
+    public void onRecordEnd(final File recordFile, final long duration) {
         final String content = et_input_sms.getText().toString().trim();
         // 发送消息(该消息只用来在本地显示)
         final MyMessage localMessage = new MyMessage(currentUser, jid, content,
@@ -164,18 +197,31 @@ public class GroupChatActivity extends AppCompatActivity implements
         messageList.add(localMessage);
         adapter.notifyDataSetChanged();
 
-        // 要发送的消息(文本)，发送的消息需要别人来接收，所以发送时OprationType的值应该为Receiver而不是send
-        final MyMessage remoteMessage = new MyMessage(currentUser, jid, content,
-                DateUtils.newDate(), MyMessage.OprationType.Receiver.getType(),
-                recordFile.getName(), duration);
 
-        // 发送消息
-        try {
-            chat.sendMessage(remoteMessage.toJson());
+        FileManager.uploadFile(recordFile, Constants.UPLOAD_FILE, new AsyncHttpResponseHandler(){
+            @Override
+            public void onSuccess(int i, String s) {
+                super.onSuccess(i, s);
+                Logger.e("上传成功：" + i + "-- s = " + s);
+                // 要发送的消息(文本)，发送的消息需要别人来接收，所以发送时OprationType的值应该为Receiver而不是send
+                final MyMessage remoteMessage = new MyMessage(currentUser, jid, content,
+                        DateUtils.newDate(), MyMessage.OprationType.Receiver.getType(),
+                        recordFile.getName(), duration);
+                try {
+                    chat.sendMessage(remoteMessage.toJson());
+                } catch (SmackException.NotConnectedException e) {
+                    e.printStackTrace();
+                }
+            }
 
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
+            @Override
+            public void onFailure(Throwable throwable, String s) {
+                super.onFailure(throwable, s);
+                ToastUtils.showLongToast("上传失败：" + throwable.toString() + s);
+                Logger.e("上传失败：" + throwable.toString() + "--s = " + s);
+                ToastUtils.showLongToast("文件上传失败");
+            }
+        });
     }
 
     /**
@@ -189,7 +235,6 @@ public class GroupChatActivity extends AppCompatActivity implements
      */
     @Override
     public void processMessage(Message message) {
-
         final String body = message.getBody();
         final MyMessage myMessage = GsonUtils.getGsonInstance().fromJson(body, MyMessage.class);
         if (myMessage == null) return;
@@ -198,7 +243,55 @@ public class GroupChatActivity extends AppCompatActivity implements
             final String json = message.getBody();
             final MyMessage receiveMessage = GsonUtils.getGsonInstance().fromJson(json, MyMessage.class);
             messageList.add(receiveMessage);
+
+            // 如果是语音消息，则直接下载
+            if (receiveMessage.getMessageType() == MyMessage.MessageType.Voice.getType()) {
+                // 使用广播让Activity和Service通信
+                Logger.e("通知下载1");
+                Intent intent = new Intent(DownLoadService.FILE_DOWNLOAD);
+                intent.putExtra("fileName", receiveMessage.getFileName());
+                sendBroadcast(intent);
+            }
+
             handler.sendEmptyMessage(MESSAGE_RECEIVE);
+        }
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        if (receiver != null) {
+            unregisterReceiver(receiver);
+        }
+    }
+
+    /**
+     * 文件下载成功的广播
+     */
+    class DownloadSuccessReceiver extends BroadcastReceiver {
+
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            if (intent.getAction().equals(DownLoadService.FILE_DOWNLOAD_SUCCESS)) {
+                final String fileName = intent.getStringExtra("fileName");
+                updateState(fileName);
+            }
+        }
+    }
+
+    /**
+     * 文件下载成功更新数据
+     */
+    private void updateState(String fileName) {
+        final int count = adapter.getCount();
+        MyMessage message;
+        for (int i = 0; i < count; i++) {
+            message = adapter.getItem(i);
+            if (message != null) {
+                if (message.getFileName().equals(fileName)) {
+                    message.setMessageState(MyMessage.MessageState.Sucess.getType());
+                }
+            }
         }
     }
 

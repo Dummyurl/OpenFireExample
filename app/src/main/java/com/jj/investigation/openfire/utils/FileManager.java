@@ -2,7 +2,17 @@ package com.jj.investigation.openfire.utils;
 
 import android.os.Environment;
 
+import com.loopj.android.http.AsyncHttpClient;
+import com.loopj.android.http.AsyncHttpResponseHandler;
+import com.loopj.android.http.RequestParams;
+
 import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.net.HttpURLConnection;
+import java.net.URL;
 import java.util.UUID;
 
 /**
@@ -59,8 +69,72 @@ public class FileManager {
                 }
             }
         }
-        Logger.e("resultt = " + result);
         return result;
+    }
+
+    /**
+     *
+     * @param file 要上传的文件
+     * @param url 上传的地址
+     * @param handler 回调监听
+     */
+    public static void uploadFile(File file, String url, AsyncHttpResponseHandler handler) {
+        final AsyncHttpClient client = new AsyncHttpClient();
+        final RequestParams params = new RequestParams();
+        try {
+            params.put("file", file);
+            client.post(url, params, handler);
+            System.out.println("路径：" + url);
+        } catch (FileNotFoundException e) {
+            e.printStackTrace();
+            Logger.e("上传文件异常：" + e.toString());
+            ToastUtils.showLongToast("文件异常");
+        }
+    }
+
+    /**
+     * 下载文件
+     * @param url 要下载的文件的地址URL
+     * @param file 下载后的文件（具体路径）
+     * @return 返回下载的文件，即参数中中的file
+     */
+    public static File downloadFile(final String url, final File file) {
+        // 如果该file已经存在，说明之前已经下载过，直接返回即可
+        if (file.exists()) {
+            return file;
+        }
+        InputStream inputStream = null;
+        FileOutputStream outputStream = null;
+        try {
+            final URL downLoadUrl = new URL(url);
+            final HttpURLConnection conn = (HttpURLConnection) downLoadUrl.openConnection();
+            inputStream =  conn.getInputStream();
+            outputStream = new FileOutputStream(file);
+            // 开始边读边写
+            int len = 0;
+            byte[] buffer = new byte[1024];
+            while ((len = inputStream.read(buffer)) != -1) {
+                outputStream.write(buffer, 0, len);
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        } finally {
+            if (inputStream != null) {
+                try {
+                    inputStream.close();
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            }
+            if (outputStream != null) {
+                try {
+                    outputStream.close();
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            }
+        }
+        return file;
     }
 
 }

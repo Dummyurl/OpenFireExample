@@ -210,9 +210,8 @@ public class VoiceRecordButton extends Button {
     }
 
 
-
     /**
-     * 录音监听
+     * 录音监听（录音结束的监听）
      */
     public interface OnVoiceRecordListener {
         /**
