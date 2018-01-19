@@ -40,6 +40,8 @@ public class FileManager {
 
     /**
      * 根据文件名查找该文件是否存在
+     * mmp的，对文件的操作都忘光了快，直接file.exit就可以知道文件是否存在了，代码中有的也这么做了，
+     * 但是不知道为啥脑子抽还自己写了一个方法
      *
      * @param fileName   文件名称(不是路径)
      * @param secondPaht 二级路径
@@ -50,13 +52,13 @@ public class FileManager {
         if (!Utils.isNull(fileName)) {
             if (Environment.getExternalStorageState().equals(
                     Environment.MEDIA_MOUNTED)) {
-                File externalStorageDirectory = Environment.getExternalStorageDirectory();
+                final File externalStorageDirectory = Environment.getExternalStorageDirectory();
                 // 定位到项目所创文件夹位置
-                File sFile = new File(externalStorageDirectory.getPath() + "/js/" + secondPaht + "/");
+                final File sFile = new File(externalStorageDirectory.getPath() + "/js/" + secondPaht + "/");
                 if (sFile != null) {
                     // 获取该文件夹下的文件，因为该文件夹是自己所建，所以确定里面所有子项都是文件，所以不必须再
                     // 判断是否是文件夹和文件
-                    File[] files = sFile.listFiles();
+                    final File[] files = sFile.listFiles();
                     if (files != null && files.length > 0) {
                         for (File file : files) {
                             if (file != null) {
@@ -73,9 +75,8 @@ public class FileManager {
     }
 
     /**
-     *
-     * @param file 要上传的文件
-     * @param url 上传的地址
+     * @param file    要上传的文件
+     * @param url     上传的地址
      * @param handler 回调监听
      */
     public static void uploadFile(File file, String url, AsyncHttpResponseHandler handler) {
@@ -94,7 +95,8 @@ public class FileManager {
 
     /**
      * 下载文件
-     * @param url 要下载的文件的地址URL
+     *
+     * @param url  要下载的文件的地址URL
      * @param file 下载后的文件（具体路径）
      * @return 返回下载的文件，即参数中中的file
      */
@@ -108,7 +110,7 @@ public class FileManager {
         try {
             final URL downLoadUrl = new URL(url);
             final HttpURLConnection conn = (HttpURLConnection) downLoadUrl.openConnection();
-            inputStream =  conn.getInputStream();
+            inputStream = conn.getInputStream();
             outputStream = new FileOutputStream(file);
             // 开始边读边写
             int len = 0;

@@ -4,6 +4,8 @@ import android.os.Bundle;
 import android.os.Handler;
 import android.support.annotation.Nullable;
 import android.support.v7.app.AppCompatActivity;
+import android.text.Editable;
+import android.text.TextWatcher;
 import android.util.Log;
 import android.view.View;
 import android.widget.EditText;
@@ -20,18 +22,21 @@ import com.jj.investigation.openfire.retrofit.RetrofitUtil;
 import com.jj.investigation.openfire.smack.XmppManager;
 import com.jj.investigation.openfire.utils.DateUtils;
 import com.jj.investigation.openfire.utils.FileManager;
-import com.jj.investigation.openfire.utils.GsonUtils;
 import com.jj.investigation.openfire.utils.Logger;
 import com.jj.investigation.openfire.utils.ToastUtils;
 import com.jj.investigation.openfire.utils.Utils;
 import com.jj.investigation.openfire.view.VoiceRecordButton;
 
+import org.jivesoftware.smack.SmackException;
 import org.jivesoftware.smack.chat.Chat;
 import org.jivesoftware.smack.chat.ChatManager;
 import org.jivesoftware.smack.chat.ChatManagerListener;
 import org.jivesoftware.smack.chat.ChatMessageListener;
+import org.jivesoftware.smack.packet.ExtensionElement;
 import org.jivesoftware.smack.packet.Message;
 import org.jivesoftware.smack.tcp.XMPPTCPConnection;
+import org.jivesoftware.smackx.chatstates.ChatState;
+import org.jivesoftware.smackx.chatstates.packet.ChatStateExtension;
 import org.jivesoftware.smackx.filetransfer.FileTransfer;
 import org.jivesoftware.smackx.filetransfer.FileTransferListener;
 import org.jivesoftware.smackx.filetransfer.FileTransferManager;
@@ -77,8 +82,13 @@ public class ChatActivity extends AppCompatActivity implements ChatManagerListen
     private FileTransferManager fileTransferManager;
     // 接收消息
     private static final int MESSAGE_RECEIVE = 0;
-    // 文件下载成功
-    private static final int FILE_DOWNLOAD_SUCESS = 1;
+    // 刷新UI
+    private static final int MESSAGE_REFRESH = 1;
+
+    // 对方正在输入......
+    private static final int MESSAGE_COMPOSING = 2;
+    // 对方停止输入......
+    private static final int MESSAGE_PAUSED = 3;
 
     private final Handler handler = new Handler() {
         @Override
@@ -88,9 +98,14 @@ public class ChatActivity extends AppCompatActivity implements ChatManagerListen
                 case MESSAGE_RECEIVE:
                     adapter.notifyDataSetChanged();
                     break;
-                case FILE_DOWNLOAD_SUCESS:
+                case MESSAGE_REFRESH:
                     ToastUtils.showLongToast("文件下载成功");
-                    Logger.e("文件下载成功：" + msg.obj.toString());
+                    break;
+                case MESSAGE_COMPOSING:
+                    tv_title.setText("正在输入...");
+                    break;
+                case MESSAGE_PAUSED:
+                    tv_title.setText(name);
                     break;
                 default:
                     break;
@@ -105,6 +120,7 @@ public class ChatActivity extends AppCompatActivity implements ChatManagerListen
         setContentView(R.layout.activity_chat);
         initView();
         initData();
+        editTextListener();
     }
 
     private void initView() {
@@ -147,6 +163,40 @@ public class ChatActivity extends AppCompatActivity implements ChatManagerListen
         fileTransferManager.addFileTransferListener(this);
     }
 
+    /**
+     * 输入框的监听
+     * 如果输入内容在增加，则发送正在输入的状态，如果删除内容，则不发送消息
+     */
+    private void editTextListener() {
+
+        et_input_sms.addTextChangedListener(new TextWatcher() {
+
+            // 输入的字符串长度
+            private int count = 0;
+            private ChatStateThread thread;
+
+            @Override
+            public void beforeTextChanged(CharSequence s, int start, int count, int after) {}
+            @Override
+            public void onTextChanged(CharSequence s, int start, int before, int count) {
+                if (this.count < s.length()) {
+                    if (thread == null || !thread.isRunning) {
+                        thread = new ChatStateThread();
+                        thread.start();
+                        sendMessageState(ChatState.composing);
+                    }
+                    thread.setOldTime(System.currentTimeMillis());
+                }
+                this.count = s.length();
+            }
+
+            @Override
+            public void afterTextChanged(Editable s) {
+
+            }
+        });
+    }
+
     @Override
     public void onClick(View v) {
         switch (v.getId()) {
@@ -168,7 +218,9 @@ public class ChatActivity extends AppCompatActivity implements ChatManagerListen
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribe(new Subscriber<ServletData<ArrayList<User>>>() {
                     @Override
-                    public void onCompleted() {}
+                    public void onCompleted() {
+                    }
+
                     @Override
                     public void onError(Throwable e) {
                         Log.e("查询失败", e.toString());
@@ -215,10 +267,39 @@ public class ChatActivity extends AppCompatActivity implements ChatManagerListen
      */
     @Override
     public void processMessage(Chat chat, Message message) {
-        final String json = message.getBody();
-        final MyMessage receiveMessage = GsonUtils.getGsonInstance().fromJson(json, MyMessage.class);
-        messageList.add(receiveMessage);
-        handler.sendEmptyMessage(MESSAGE_RECEIVE);
+
+        // 1.收到输入状态
+        final ExtensionElement extension = message.getExtension("http://jabber.org/protocol/chatstates");
+        Logger.e("extension = " + extension.getElementName());
+        if (extension.getElementName().equals("composing")) { // 对方正在输入
+            handler.sendEmptyMessage(MESSAGE_COMPOSING);
+        } else if (extension.getElementName().equals("paused")) { // 对方暂停输入
+            handler.sendEmptyMessage(MESSAGE_PAUSED);
+        } else if (extension.getElementName().equals("active")) { // 对方点击发送消息
+            final MyMessage myMessage = new MyMessage(message.getFrom(), message.getTo(),
+                    message.getBody(), DateUtils.newDate(), MyMessage.OprationType.Receiver.getType());
+            messageList.add(myMessage);
+            handler.sendEmptyMessage(MESSAGE_RECEIVE);
+        } else { // 自己的消息
+            android.os.Message obtainMessage = handler.obtainMessage(
+                    MESSAGE_RECEIVE, message.getBody());
+            handler.sendMessage(obtainMessage);
+        }
+    }
+
+    /**
+     * 发送输入状态的消息：
+     * 也是通过chat发送了一条消息，但是该消息的内容就是用户的输入状态而已
+     */
+    private void sendMessageState(ChatState chatState) {
+        final Message message = new Message();
+        // 添加状态消息
+        message.addExtension(new ChatStateExtension(chatState));
+        try {
+            chat.sendMessage(message);
+        } catch (SmackException.NotConnectedException e) {
+            e.printStackTrace();
+        }
     }
 
     /**
@@ -259,7 +340,9 @@ public class ChatActivity extends AppCompatActivity implements ChatManagerListen
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribe(new Subscriber<ServletData>() {
                     @Override
-                    public void onCompleted() {}
+                    public void onCompleted() {
+                    }
+
                     @Override
                     public void onError(Throwable e) {
                         Logger.e("添加消息异常：" + e.toString());
@@ -327,7 +410,7 @@ public class ChatActivity extends AppCompatActivity implements ChatManagerListen
             Thread.sleep(3000);
             // 3.判断文件是否下载成功:complete--下载成功，其他为失败
             if (accept.getStatus() == FileTransfer.Status.complete) {
-                android.os.Message message = handler.obtainMessage(FILE_DOWNLOAD_SUCESS, file.getName());
+                android.os.Message message = handler.obtainMessage(MESSAGE_REFRESH, file.getName());
                 handler.sendMessage(message);
                 updataMessageState(file, MyMessage.MessageState.Sucess);
             } else {
@@ -342,7 +425,8 @@ public class ChatActivity extends AppCompatActivity implements ChatManagerListen
     /**
      * 更新adapter中文件下载的状态
      * 循环所有消息下载的文件，如果文件如当前下载的文件相同，则设置当前消息的文件下载状态
-     * @param file 下载的文件
+     *
+     * @param file         下载的文件
      * @param messageState 下载文件的状态
      */
     public void updataMessageState(File file, MyMessage.MessageState messageState) {
@@ -352,6 +436,51 @@ public class ChatActivity extends AppCompatActivity implements ChatManagerListen
             if (message.getFileName().equals(file.getName())) {
                 message.setMessageState(messageState.getType());
             }
+        }
+    }
+
+    /**
+     * 监听输入框输入的线程
+     */
+    class ChatStateThread extends Thread {
+
+        // 上一次输入的时间
+        private long oldTime;
+        // 最新一次输入的时间
+        private long newTime;
+        // 默认两次输入间隔时间1秒内有效
+        private static final long TIME_INTERVAL = 1000;
+        // 控制线程的结束
+        private boolean isRunning = true;
+
+
+        public ChatStateThread() {
+            oldTime = System.currentTimeMillis();
+            newTime = System.currentTimeMillis();
+        }
+
+        @Override
+        public void run() {
+            while (isRunning) {
+                try {
+                    // 每隔200毫秒判断一次时间间隔
+                    Thread.sleep(200);
+                    if (newTime - oldTime > TIME_INTERVAL) {
+                        isRunning = false;
+                        sendMessageState(ChatState.paused);
+                    }
+                    newTime = System.currentTimeMillis();
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
+            }
+        }
+
+        /**
+         * 重置旧的时间
+         */
+        public void setOldTime(long oldTime) {
+            this.oldTime = oldTime;
         }
     }
 }

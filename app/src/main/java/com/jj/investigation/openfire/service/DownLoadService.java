@@ -65,9 +65,7 @@ public class DownLoadService extends Service {
 
         @Override
         public void onReceive(Context context, Intent intent) {
-            Logger.e("action = " + intent.getAction());
             if (intent.getAction().equals(FILE_DOWNLOAD)) {
-                Logger.e("通知下载2--DownloadReceiver");
                 // 要下载的文件名称
                 final String fileName = intent.getStringExtra("fileName");
                 // 下载的地址URL

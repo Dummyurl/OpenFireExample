@@ -117,7 +117,10 @@ public class ChatAdapter extends BaseAdapter {
                 convertView = inflater.inflate(R.layout.item_chat_voice_sent, parent, false);
             }
             holder = new ViewHolder(convertView);
-            convertView.setTag(holder);
+            Logger.e("convertView = " + convertView + ", holder = " + holder);
+            if (convertView != null) {
+                convertView.setTag(holder);
+            }
         } else {
             holder = (ViewHolder) convertView.getTag();
         }

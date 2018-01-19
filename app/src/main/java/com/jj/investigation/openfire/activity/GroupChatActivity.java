@@ -247,7 +247,6 @@ public class GroupChatActivity extends AppCompatActivity implements
             // 如果是语音消息，则直接下载
             if (receiveMessage.getMessageType() == MyMessage.MessageType.Voice.getType()) {
                 // 使用广播让Activity和Service通信
-                Logger.e("通知下载1");
                 Intent intent = new Intent(DownLoadService.FILE_DOWNLOAD);
                 intent.putExtra("fileName", receiveMessage.getFileName());
                 sendBroadcast(intent);

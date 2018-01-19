@@ -22,6 +22,7 @@ import com.jj.investigation.openfire.smack.XmppManager;
 import com.jj.investigation.openfire.utils.Constants;
 import com.jj.investigation.openfire.utils.Logger;
 import com.jj.investigation.openfire.utils.ShareValue;
+import com.jj.investigation.openfire.utils.ToastUtils;
 import com.jj.investigation.openfire.utils.Utils;
 
 import org.jivesoftware.smack.SmackException;
@@ -121,7 +122,6 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         elv_friend = (ExpandableListView) findViewById(R.id.elv_friend);
     }
 
-
     private void initData() {
         adapter = new ContactsListAdapter(this);
         elv_friend.setAdapter(adapter);
@@ -139,7 +139,8 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 startActivity(new Intent(this, SearchActivity.class));
                 break;
             case R.id.btn_create_group:
-                startActivity(new Intent(this, GroupManagerActivity.class));
+                ToastUtils.showShortToastSafe("开发中");
+//                startActivity(new Intent(this, GroupManagerActivity.class));
                 break;
             case R.id.btn_logout:
                 logout();

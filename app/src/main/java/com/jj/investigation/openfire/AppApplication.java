@@ -15,6 +15,7 @@ public class AppApplication extends Application {
     @Override
     public void onCreate() {
         super.onCreate();
+
         //初始化Smack客户端
         new AndroidSmackInitializer().initialize();
         this.application = this;
