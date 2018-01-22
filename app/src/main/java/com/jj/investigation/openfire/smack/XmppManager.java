@@ -53,7 +53,7 @@ public class XmppManager {
             try {
                 xmppConnection.connect();
             } catch (Exception e) {
-                System.out.println("XMPPTCPConnection-open failed:" + e.toString());
+                System.out.println("XMPPTCPConnection链接失败:" + e.toString());
                 e.printStackTrace();
             }
         }

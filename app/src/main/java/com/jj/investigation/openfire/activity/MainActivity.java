@@ -165,7 +165,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     // 联系人点击事件
     @Override
     public boolean onChildClick(ExpandableListView parent, View v, int groupPosition, int childPosition, long id) {
-        Intent intent = new Intent(this, ChatActivity.class);
+        final Intent intent = new Intent(this, ChatActivity2.class);
         intent.putExtra("jid", adapter.getChild(groupPosition, childPosition).getJid());
         startActivity(intent);
         return true;

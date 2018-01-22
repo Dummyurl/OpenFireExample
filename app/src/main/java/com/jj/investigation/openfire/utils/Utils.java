@@ -3,6 +3,8 @@ package com.jj.investigation.openfire.utils;
 import android.content.Context;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
+import android.view.View;
+import android.view.inputmethod.InputMethodManager;
 
 import com.jj.investigation.openfire.AppApplication;
 
@@ -74,6 +76,18 @@ public class Utils {
             return true;
         }
         return false;
+    }
+
+
+    /***
+     * 此方法只是关闭软键盘
+     */
+    public static void hintKbTwo(Context context, View view) {
+
+        InputMethodManager inputMethodManager = (InputMethodManager) context
+                .getSystemService(Context.INPUT_METHOD_SERVICE);
+        inputMethodManager.hideSoftInputFromWindow(view.getWindowToken(), 0);
+
     }
 
 }

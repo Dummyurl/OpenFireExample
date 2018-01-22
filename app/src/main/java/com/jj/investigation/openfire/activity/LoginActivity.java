@@ -93,8 +93,7 @@ public class LoginActivity extends AppCompatActivity {
         protected void onPostExecute(Boolean loginStatus) {
             loadingDialog.hideDialog();
             if (loginStatus) {
-//                startActivity(new Intent(LoginActivity.this, MainActivity.class));
-                startActivity(new Intent(LoginActivity.this, ChatTestActivity.class));
+                startActivity(new Intent(LoginActivity.this, MainActivity.class));
                 finish();
             } else {
                 ToastUtils.showShortToastSafe("登录失败");

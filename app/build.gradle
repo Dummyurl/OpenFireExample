@@ -31,7 +31,8 @@ dependencies {
     androidTestCompile('com.android.support.test.espresso:espresso-core:2.2.2', {
         exclude group: 'com.android.support', module: 'support-annotations'
     })
-    compile 'com.android.support:appcompat-v7:25.3.1'
+    compile 'com.android.support:appcompat-v7:25.2.0'
+    compile 'com.android.support:support-v4:25.1.0'
     testCompile 'junit:junit:4.12'
     // OpenFire的依赖
     compile 'org.igniterealtime.smack:smack-android-extensions:4.1.0'
@@ -47,6 +48,7 @@ dependencies {
     compile 'io.reactivex:rxjava:1.1.0'
     compile 'com.artemzin.rxjava:proguard-rules:1.1.1.0'
     compile 'com.squareup.picasso:picasso:2.3.2'
-    compile 'com.android.support:design:26.0.0-alpha1'
+    compile 'com.android.support:design:25.2.0'
+    compile 'com.yanzhenjie:album:2.0.0-alpha'
     compile files('libs/android-async-http-1.4.3.jar')
 }

@@ -4,11 +4,8 @@ import android.os.Bundle;
 import android.os.Handler;
 import android.support.annotation.Nullable;
 import android.support.v7.app.AppCompatActivity;
-import android.text.Editable;
-import android.text.TextWatcher;
 import android.util.Log;
 import android.view.View;
-import android.widget.EditText;
 import android.widget.ListView;
 import android.widget.TextView;
 
@@ -18,6 +15,8 @@ import com.jj.investigation.openfire.adapter.ChatAdapter;
 import com.jj.investigation.openfire.bean.MyMessage;
 import com.jj.investigation.openfire.bean.ServletData;
 import com.jj.investigation.openfire.bean.User;
+import com.jj.investigation.openfire.impl.ChatPictureSelectedListener;
+import com.jj.investigation.openfire.impl.ChatTextSendListener;
 import com.jj.investigation.openfire.retrofit.RetrofitService;
 import com.jj.investigation.openfire.retrofit.RetrofitUtil;
 import com.jj.investigation.openfire.smack.XmppManager;
@@ -27,8 +26,9 @@ import com.jj.investigation.openfire.utils.Logger;
 import com.jj.investigation.openfire.utils.ToastUtils;
 import com.jj.investigation.openfire.utils.Utils;
 import com.jj.investigation.openfire.view.VoiceRecordButton;
+import com.jj.investigation.openfire.view.chatbottom.JSChatBottomView;
+import com.yanzhenjie.album.AlbumFile;
 
-import org.jivesoftware.smack.SmackException;
 import org.jivesoftware.smack.chat.Chat;
 import org.jivesoftware.smack.chat.ChatManager;
 import org.jivesoftware.smack.chat.ChatManagerListener;
@@ -36,8 +36,6 @@ import org.jivesoftware.smack.chat.ChatMessageListener;
 import org.jivesoftware.smack.packet.ExtensionElement;
 import org.jivesoftware.smack.packet.Message;
 import org.jivesoftware.smack.tcp.XMPPTCPConnection;
-import org.jivesoftware.smackx.chatstates.ChatState;
-import org.jivesoftware.smackx.chatstates.packet.ChatStateExtension;
 import org.jivesoftware.smackx.filetransfer.FileTransfer;
 import org.jivesoftware.smackx.filetransfer.FileTransferListener;
 import org.jivesoftware.smackx.filetransfer.FileTransferManager;
@@ -55,27 +53,27 @@ import rx.android.schedulers.AndroidSchedulers;
 import rx.schedulers.Schedulers;
 
 /**
- * 聊天界面（单聊）：
- * 因为单聊和群聊有很多不同的地方，为了方便看单聊和群聊做成了两个页面
- * 使用当前用户和对方的jid是为了聊天使用，OpenFire只认识jid。
- * 根据jid从自己的平台查询对应的用户，拿到用户在自己平台的信息，这个是在聊天界面显示时使用
+ *
  * Created by ${R.js} on 2017/12/19.
  */
 
-public class ChatActivity extends AppCompatActivity implements ChatManagerListener, ChatMessageListener,
+public class ChatActivity2 extends AppCompatActivity implements ChatManagerListener, ChatMessageListener,
         VoiceRecordButton.OnVoiceRecordListener, FileTransferListener, View.OnClickListener {
 
-    private EditText et_input_sms;
-    private String name;
     private TextView tv_title;
-    private String jid;
     private ListView lv_message_chat;
+    private JSChatBottomView jschat_bottom_view;
+
+    private String name;
+    private String jid;
     private XMPPTCPConnection connection;
     private Chat chat;
     private String currentUser;
     private String from_uid;
     private String to_uid;
     private RetrofitService api;
+    // 输入框内容
+    private String content;
     // 消息集合
     private List<MyMessage> messageList = new ArrayList<>();
     private ChatAdapter adapter;
@@ -85,7 +83,6 @@ public class ChatActivity extends AppCompatActivity implements ChatManagerListen
     private static final int MESSAGE_RECEIVE = 0;
     // 刷新UI
     private static final int MESSAGE_REFRESH = 1;
-
     // 对方正在输入......
     private static final int MESSAGE_COMPOSING = 2;
     // 对方停止输入......
@@ -118,10 +115,10 @@ public class ChatActivity extends AppCompatActivity implements ChatManagerListen
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_chat);
+        setContentView(R.layout.activity_chat2);
         initView();
         initData();
-        editTextListener();
+        chatCallBackListener();
     }
 
     private void initView() {
@@ -129,8 +126,8 @@ public class ChatActivity extends AppCompatActivity implements ChatManagerListen
         tv_left.setVisibility(View.VISIBLE);
         tv_left.setOnClickListener(this);
         tv_title = (TextView) findViewById(R.id.tv_title);
-        et_input_sms = (EditText) findViewById(R.id.et_input_sms);
         lv_message_chat = (ListView) findViewById(R.id.lv_message_chat);
+        jschat_bottom_view = (JSChatBottomView) findViewById(R.id.jschat_bottom_view);
         VoiceRecordButton btn_voice_record = (VoiceRecordButton) findViewById(R.id.btn_voice_record);
         btn_voice_record.setOnVoiceRecordListener(this);
     }
@@ -162,40 +159,8 @@ public class ChatActivity extends AppCompatActivity implements ChatManagerListen
         // 获取OpenFire的文件管理器并添加上传文件的监听
         fileTransferManager = FileTransferManager.getInstanceFor(connection);
         fileTransferManager.addFileTransferListener(this);
-    }
-
-    /**
-     * 输入框的监听
-     * 如果输入内容在增加，则发送正在输入的状态，如果删除内容，则不发送消息
-     */
-    private void editTextListener() {
-
-        et_input_sms.addTextChangedListener(new TextWatcher() {
-
-            // 输入的字符串长度
-            private int count = 0;
-            private ChatStateThread thread;
-
-            @Override
-            public void beforeTextChanged(CharSequence s, int start, int count, int after) {}
-            @Override
-            public void onTextChanged(CharSequence s, int start, int before, int count) {
-                if (this.count < s.length()) {
-                    if (thread == null || !thread.isRunning) {
-                        thread = new ChatStateThread();
-                        thread.start();
-                        sendMessageState(ChatState.composing);
-                    }
-                    thread.setOldTime(System.currentTimeMillis());
-                }
-                this.count = s.length();
-            }
-
-            @Override
-            public void afterTextChanged(Editable s) {
-
-            }
-        });
+        Logger.e("jschat_bottom_view = " + jschat_bottom_view + ", chat = " + chat);
+        jschat_bottom_view.setChatManager(chat);
     }
 
     @Override
@@ -206,6 +171,52 @@ public class ChatActivity extends AppCompatActivity implements ChatManagerListen
                 break;
         }
     }
+
+    /**
+     * JSChatBottomView的一些监听：发送消息、选择图片等
+     */
+    private void chatCallBackListener() {
+        // 1.选择图片的监听
+        jschat_bottom_view.setChatPictureSelectedListener(new ChatPictureSelectedListener() {
+            @Override
+            public void pictureSelected(ArrayList<AlbumFile> albumFiles) {
+                ToastUtils.showShortToastSafe("选择了图片：" + albumFiles.get(0).getName());
+            }
+        });
+
+        // 2.发送文本的监听
+        jschat_bottom_view.setChatTextSendListener(new ChatTextSendListener() {
+            @Override
+            public void textSend(String content) {
+                ChatActivity2.this.content = content;
+                sendTxt(content);
+            }
+        });
+    }
+
+    /**
+     * 发送文本消息
+     */
+    private void sendTxt(String content) {
+        try {
+            // 1.发送消息(该消息只用来在本地显示)
+            final MyMessage localMessage = new MyMessage(currentUser, jid, content,
+                    DateUtils.newDate(), MyMessage.OprationType.Send.getType());
+
+            messageList.add(localMessage);
+            adapter.notifyDataSetChanged();
+
+            // 2.要发送的消息，发送的消息需要别人来接收，所以发送时OprationType的值应该为Receiver而不是send
+            final MyMessage remoteMessage = new MyMessage(currentUser, jid, content,
+                    DateUtils.newDate(), MyMessage.OprationType.Receiver.getType());
+            chat.sendMessage(remoteMessage.toJson());
+            pushRecord(from_uid, to_uid);
+        } catch (Exception e) {
+            e.printStackTrace();
+            Log.e("发送消息异常：", e.toString());
+        }
+    }
+
 
     /**
      * 根据jid查询用户的信息：
@@ -277,6 +288,7 @@ public class ChatActivity extends AppCompatActivity implements ChatManagerListen
             final MyMessage myMessage = new Gson().fromJson(message.getBody(), MyMessage.class);
             messageList.add(myMessage);
             handler.sendEmptyMessage(MESSAGE_RECEIVE);
+            return;
         }
         if (extension.getElementName().equals("composing")) { // 对方正在输入
             handler.sendEmptyMessage(MESSAGE_COMPOSING);
@@ -296,54 +308,13 @@ public class ChatActivity extends AppCompatActivity implements ChatManagerListen
     }
 
     /**
-     * 发送输入状态的消息：
-     * 也是通过chat发送了一条消息，但是该消息的内容就是用户的输入状态而已
-     */
-    private void sendMessageState(ChatState chatState) {
-        final Message message = new Message();
-        // 添加状态消息
-        message.addExtension(new ChatStateExtension(chatState));
-        try {
-            chat.sendMessage(message);
-        } catch (SmackException.NotConnectedException e) {
-            e.printStackTrace();
-        }
-    }
-
-    /**
-     * 发送消息的点击事件
-     * 这里发送的都是文本消息
-     */
-    public void clickSendMessage(View v) {
-        try {
-            final String content = et_input_sms.getText().toString().trim();
-            // 1.发送消息(该消息只用来在本地显示)
-            final MyMessage localMessage = new MyMessage(currentUser, jid, content,
-                    DateUtils.newDate(), MyMessage.OprationType.Send.getType());
-
-            messageList.add(localMessage);
-            adapter.notifyDataSetChanged();
-
-            // 2.要发送的消息，发送的消息需要别人来接收，所以发送时OprationType的值应该为Receiver而不是send
-            final MyMessage remoteMessage = new MyMessage(currentUser, jid, content,
-                    DateUtils.newDate(), MyMessage.OprationType.Receiver.getType());
-            chat.sendMessage(remoteMessage.toJson());
-            pushRecord(from_uid, to_uid);
-            et_input_sms.setText("");
-        } catch (Exception e) {
-            e.printStackTrace();
-            Log.e("发送消息异常：", e.toString());
-        }
-    }
-
-    /**
      * 向后台加添一条聊天记录
      *
      * @param from_uid 当前用户的user_id
      * @param to_uid   接收消息的用户的user_id
      */
     private void pushRecord(String from_uid, String to_uid) {
-        api.addChatRecord(et_input_sms.getText().toString().trim(), "text", from_uid, to_uid, DateUtils.newDate())
+        api.addChatRecord(content, "text", from_uid, to_uid, DateUtils.newDate())
                 .subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribe(new Subscriber<ServletData>() {
@@ -371,7 +342,6 @@ public class ChatActivity extends AppCompatActivity implements ChatManagerListen
      */
     @Override
     public void onRecordEnd(File recordFile, long duration) {
-        final String content = et_input_sms.getText().toString().trim();
         // 发送消息(该消息只用来在本地显示)
         final MyMessage localMessage = new MyMessage(currentUser, jid, content,
                 DateUtils.newDate(), MyMessage.OprationType.Send.getType(),
@@ -444,51 +414,6 @@ public class ChatActivity extends AppCompatActivity implements ChatManagerListen
             if (message.getFileName().equals(file.getName())) {
                 message.setMessageState(messageState.getType());
             }
-        }
-    }
-
-    /**
-     * 监听输入框输入的线程
-     */
-    class ChatStateThread extends Thread {
-
-        // 上一次输入的时间
-        private long oldTime;
-        // 最新一次输入的时间
-        private long newTime;
-        // 默认两次输入间隔时间1秒内有效
-        private static final long TIME_INTERVAL = 1000;
-        // 控制线程的结束
-        private boolean isRunning = true;
-
-
-        public ChatStateThread() {
-            oldTime = System.currentTimeMillis();
-            newTime = System.currentTimeMillis();
-        }
-
-        @Override
-        public void run() {
-            while (isRunning) {
-                try {
-                    // 每隔200毫秒判断一次时间间隔
-                    Thread.sleep(200);
-                    if (newTime - oldTime > TIME_INTERVAL) {
-                        isRunning = false;
-                        sendMessageState(ChatState.paused);
-                    }
-                    newTime = System.currentTimeMillis();
-                } catch (InterruptedException e) {
-                    e.printStackTrace();
-                }
-            }
-        }
-
-        /**
-         * 重置旧的时间
-         */
-        public void setOldTime(long oldTime) {
-            this.oldTime = oldTime;
         }
     }
 }

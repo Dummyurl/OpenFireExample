@@ -105,7 +105,6 @@ public class ChatAdapter extends BaseAdapter {
     @Override
     public View getView(int position, View convertView, ViewGroup parent) {
         ViewHolder holder;
-        final MyMessage message = getItem(position);
         if (convertView == null) {
             if (getItemViewType(position) == MESSAGE_TYPE_TXT_SENT) { // 文本
                 convertView = inflater.inflate(R.layout.item_chat_text_sent, parent, false);
@@ -117,7 +116,6 @@ public class ChatAdapter extends BaseAdapter {
                 convertView = inflater.inflate(R.layout.item_chat_voice_sent, parent, false);
             }
             holder = new ViewHolder(convertView);
-            Logger.e("convertView = " + convertView + ", holder = " + holder);
             if (convertView != null) {
                 convertView.setTag(holder);
             }
@@ -125,6 +123,7 @@ public class ChatAdapter extends BaseAdapter {
             holder = (ViewHolder) convertView.getTag();
         }
 
+        final MyMessage message = getItem(position);
         // 设置布局的内容
         if (message.getMessageType() == MyMessage.MessageType.Text.getType()) { // 文本
             holder.tv_message_text.setText(message.getContent());
