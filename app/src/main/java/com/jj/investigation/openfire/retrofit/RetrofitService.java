@@ -73,5 +73,11 @@ public interface RetrofitService {
                                         @Field("gorupdesc") String gorupdesc,
                                         @Field("grouppassword") String grouppassword);
 
+
+    // 上传文件
+    @Multipart
+    @POST(Constants.UPLOAD_FILE)
+    Observable<ServletData> upload(@PartMap Map<String, RequestBody> fileMap);
+
 }
 

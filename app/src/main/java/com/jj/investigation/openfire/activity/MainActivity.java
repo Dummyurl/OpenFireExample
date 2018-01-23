@@ -22,7 +22,6 @@ import com.jj.investigation.openfire.smack.XmppManager;
 import com.jj.investigation.openfire.utils.Constants;
 import com.jj.investigation.openfire.utils.Logger;
 import com.jj.investigation.openfire.utils.ShareValue;
-import com.jj.investigation.openfire.utils.ToastUtils;
 import com.jj.investigation.openfire.utils.Utils;
 
 import org.jivesoftware.smack.SmackException;
@@ -139,8 +138,8 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 startActivity(new Intent(this, SearchActivity.class));
                 break;
             case R.id.btn_create_group:
-                ToastUtils.showShortToastSafe("开发中");
-//                startActivity(new Intent(this, GroupManagerActivity.class));
+//                ToastUtils.showShortToastSafe("开发中");
+                startActivity(new Intent(this, GroupManagerActivity.class));
                 break;
             case R.id.btn_logout:
                 logout();

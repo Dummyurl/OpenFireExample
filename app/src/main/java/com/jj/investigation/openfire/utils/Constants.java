@@ -30,7 +30,8 @@ public class Constants {
 
     // 路径如果是用Retrofit则不需要添加BaseURL
     // 上传文件
-    public static final String UPLOAD_FILE = BASE_URL + "uploadFile";
+    public static final String UPLOAD_FILE = "uploadFile";
+//    public static final String UPLOAD_FILE = BASE_URL + "uploadFile";
     // 下载文件--这个只是URL，没有对应的Servlet接口
     public static final String DOWNLOAD_FILE = BASE_URL + "upload/";
 

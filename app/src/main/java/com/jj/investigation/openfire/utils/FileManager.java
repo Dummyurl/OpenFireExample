@@ -83,6 +83,7 @@ public class FileManager {
         final AsyncHttpClient client = new AsyncHttpClient();
         final RequestParams params = new RequestParams();
         try {
+            params.put("type", "voice");
             params.put("file", file);
             client.post(url, params, handler);
             System.out.println("路径：" + url);

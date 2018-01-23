@@ -18,21 +18,19 @@ import com.jj.investigation.openfire.R;
 import com.jj.investigation.openfire.adapter.ChatAdapter;
 import com.jj.investigation.openfire.bean.IMGroup;
 import com.jj.investigation.openfire.bean.MyMessage;
-import com.jj.investigation.openfire.retrofit.RetrofitService;
-import com.jj.investigation.openfire.retrofit.RetrofitUtil;
+import com.jj.investigation.openfire.bean.ServletData;
+import com.jj.investigation.openfire.dao.ChatDao;
+import com.jj.investigation.openfire.impl.NetRequestRefreshListener;
+import com.jj.investigation.openfire.retrofit.RequestBodyUtils;
 import com.jj.investigation.openfire.service.DownLoadService;
 import com.jj.investigation.openfire.smack.XmppManager;
-import com.jj.investigation.openfire.utils.Constants;
 import com.jj.investigation.openfire.utils.DateUtils;
-import com.jj.investigation.openfire.utils.FileManager;
 import com.jj.investigation.openfire.utils.GsonUtils;
 import com.jj.investigation.openfire.utils.Logger;
 import com.jj.investigation.openfire.utils.ToastUtils;
 import com.jj.investigation.openfire.view.VoiceRecordButton;
-import com.loopj.android.http.AsyncHttpResponseHandler;
 
 import org.jivesoftware.smack.MessageListener;
-import org.jivesoftware.smack.SmackException;
 import org.jivesoftware.smack.packet.Message;
 import org.jivesoftware.smack.tcp.XMPPTCPConnection;
 import org.jivesoftware.smackx.muc.MultiUserChat;
@@ -41,7 +39,12 @@ import org.jxmpp.util.XmppStringUtils;
 
 import java.io.File;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+
+import okhttp3.MediaType;
+import okhttp3.RequestBody;
 
 /**
  * 群聊界面:
@@ -55,9 +58,8 @@ import java.util.List;
  */
 
 public class GroupChatActivity extends AppCompatActivity implements
-        VoiceRecordButton.OnVoiceRecordListener, View.OnClickListener, MessageListener {
+        VoiceRecordButton.OnVoiceRecordListener, View.OnClickListener, MessageListener, NetRequestRefreshListener {
 
-    private RetrofitService api;
     private TextView tv_title;
     private EditText et_input_sms;
     private ListView lv_message_chat;
@@ -74,6 +76,10 @@ public class GroupChatActivity extends AppCompatActivity implements
     private String jid;
     // 当前用户--用户的jid
     private String currentUser;
+    // 录音文件
+    private File recordFile;
+    // 录音时长
+    private long duration;
 
 
     private final Handler handler = new Handler() {
@@ -90,6 +96,7 @@ public class GroupChatActivity extends AppCompatActivity implements
         }
     };
     private String name;
+    private ChatDao dao;
 
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
@@ -114,8 +121,7 @@ public class GroupChatActivity extends AppCompatActivity implements
     }
 
     private void initData() {
-
-        api = RetrofitUtil.createApi();
+        dao = new ChatDao(this, this);
         connection = XmppManager.getConnection();
         groupInfo = (IMGroup) getIntent().getSerializableExtra("groupInfo");
         jid = groupInfo.getJid();
@@ -185,6 +191,8 @@ public class GroupChatActivity extends AppCompatActivity implements
 
     @Override
     public void onRecordEnd(final File recordFile, final long duration) {
+        this.recordFile = recordFile;
+        this.duration = duration;
         final String content = et_input_sms.getText().toString().trim();
         // 发送消息(该消息只用来在本地显示)
         final MyMessage localMessage = new MyMessage(currentUser, jid, content,
@@ -197,31 +205,13 @@ public class GroupChatActivity extends AppCompatActivity implements
         messageList.add(localMessage);
         adapter.notifyDataSetChanged();
 
+        // 先向后台写入语音文件，写入成功再通过OpenFire发送消息
+        final Map<String, RequestBody> fileMap = new HashMap<>();
+        fileMap.put("type", RequestBodyUtils.toRequestBody("voice"));
+        RequestBody fileRequestBody = RequestBody.create(MediaType.parse("multipart/form-data"), recordFile);
+        fileMap.put("file" + "\"; filename=\"" + recordFile.getName() + "", fileRequestBody);
+        dao.sendFile(fileMap);
 
-        FileManager.uploadFile(recordFile, Constants.UPLOAD_FILE, new AsyncHttpResponseHandler(){
-            @Override
-            public void onSuccess(int i, String s) {
-                super.onSuccess(i, s);
-                Logger.e("上传成功：" + i + "-- s = " + s);
-                // 要发送的消息(文本)，发送的消息需要别人来接收，所以发送时OprationType的值应该为Receiver而不是send
-                final MyMessage remoteMessage = new MyMessage(currentUser, jid, content,
-                        DateUtils.newDate(), MyMessage.OprationType.Receiver.getType(),
-                        recordFile.getName(), duration);
-                try {
-                    chat.sendMessage(remoteMessage.toJson());
-                } catch (SmackException.NotConnectedException e) {
-                    e.printStackTrace();
-                }
-            }
-
-            @Override
-            public void onFailure(Throwable throwable, String s) {
-                super.onFailure(throwable, s);
-                ToastUtils.showLongToast("上传失败：" + throwable.toString() + s);
-                Logger.e("上传失败：" + throwable.toString() + "--s = " + s);
-                ToastUtils.showLongToast("文件上传失败");
-            }
-        });
     }
 
     /**
@@ -235,6 +225,7 @@ public class GroupChatActivity extends AppCompatActivity implements
      */
     @Override
     public void processMessage(Message message) {
+        System.out.println("接收到消息：" + message.toString());
         final String body = message.getBody();
         final MyMessage myMessage = GsonUtils.getGsonInstance().fromJson(body, MyMessage.class);
         if (myMessage == null) return;
@@ -262,6 +253,31 @@ public class GroupChatActivity extends AppCompatActivity implements
         if (receiver != null) {
             unregisterReceiver(receiver);
         }
+    }
+
+    @Override
+    public void onSuccess(ServletData data, int page) {
+        System.out.println("data.to = " + data.getType());
+        if ("voice".equals(data.getType())) {
+            System.out.println("草泥马咋进不来啊");
+        }
+
+        // 要发送的消息(文本)，发送的消息需要别人来接收，所以发送时OprationType的值应该为Receiver而不是send
+        final MyMessage remoteMessage = new MyMessage(currentUser, jid,
+                et_input_sms.getText().toString().trim(),
+                DateUtils.newDate(), MyMessage.OprationType.Receiver.getType(),
+                recordFile.getName(), duration);
+        try {
+            chat.sendMessage(remoteMessage.toJson());
+        } catch (Exception e) {
+            e.printStackTrace();
+            System.out.println("语音消息异常：" + e.toString());
+        }
+    }
+
+    @Override
+    public void onFailer(String msg, String type, int page) {
+        ToastUtils.showLongToast("发送失败");
     }
 
     /**
