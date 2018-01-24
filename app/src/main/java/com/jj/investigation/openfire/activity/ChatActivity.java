@@ -24,7 +24,6 @@ import com.jj.investigation.openfire.smack.XmppManager;
 import com.jj.investigation.openfire.utils.DateUtils;
 import com.jj.investigation.openfire.utils.FileManager;
 import com.jj.investigation.openfire.utils.Logger;
-import com.jj.investigation.openfire.utils.ToastUtils;
 import com.jj.investigation.openfire.utils.Utils;
 import com.jj.investigation.openfire.view.VoiceRecordButton;
 
@@ -100,7 +99,7 @@ public class ChatActivity extends AppCompatActivity implements ChatManagerListen
                     adapter.notifyDataSetChanged();
                     break;
                 case MESSAGE_REFRESH:
-                    ToastUtils.showLongToast("文件下载成功");
+                    adapter.notifyDataSetChanged();
                     break;
                 case MESSAGE_COMPOSING:
                     tv_title.setText("正在输入...");
@@ -418,9 +417,9 @@ public class ChatActivity extends AppCompatActivity implements ChatManagerListen
             Thread.sleep(3000);
             // 3.判断文件是否下载成功:complete--下载成功，其他为失败
             if (accept.getStatus() == FileTransfer.Status.complete) {
+                updataMessageState(file, MyMessage.MessageState.Sucess);
                 android.os.Message message = handler.obtainMessage(MESSAGE_REFRESH, file.getName());
                 handler.sendMessage(message);
-                updataMessageState(file, MyMessage.MessageState.Sucess);
             } else {
                 updataMessageState(file, MyMessage.MessageState.Error);
             }

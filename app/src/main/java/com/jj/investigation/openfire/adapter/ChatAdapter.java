@@ -1,6 +1,9 @@
 package com.jj.investigation.openfire.adapter;
 
 import android.content.Context;
+import android.content.Intent;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.media.MediaPlayer;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -11,14 +14,15 @@ import android.widget.LinearLayout;
 import android.widget.TextView;
 
 import com.jj.investigation.openfire.R;
+import com.jj.investigation.openfire.activity.ZoomPictureActivity;
 import com.jj.investigation.openfire.bean.MyMessage;
 import com.jj.investigation.openfire.smack.RecordManager;
-import com.jj.investigation.openfire.utils.FileManager;
 import com.jj.investigation.openfire.utils.Logger;
 import com.jj.investigation.openfire.utils.ToastUtils;
 import com.jj.investigation.openfire.view.CircleImageView;
 
 import java.io.File;
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -94,6 +98,9 @@ public class ChatAdapter extends BaseAdapter {
         if (message.getMessageType() == MyMessage.MessageType.Voice.getType()) {
             return message.getOprationType() == MyMessage.OprationType.Send.getType() ? MESSAGE_TYPE_VOICE_SENT : MESSAGE_TYPE_VOICE_RECE;
         }
+        if (message.getMessageType() == MyMessage.MessageType.Image.getType()) {
+            return message.getOprationType() == MyMessage.OprationType.Send.getType() ? MESSAGE_TYPE_IMAGE_SENT : MESSAGE_TYPE_IMAGE_RECE;
+        }
         return -1;
     }
 
@@ -114,6 +121,10 @@ public class ChatAdapter extends BaseAdapter {
                 convertView = inflater.inflate(R.layout.item_chat_voice_rece, parent, false);
             } else if (getItemViewType(position) == MESSAGE_TYPE_VOICE_SENT) {
                 convertView = inflater.inflate(R.layout.item_chat_voice_sent, parent, false);
+            } else if (getItemViewType(position) == MESSAGE_TYPE_IMAGE_SENT) {
+                convertView = inflater.inflate(R.layout.item_chat_img_sent, parent, false);
+            } else if (getItemViewType(position) == MESSAGE_TYPE_IMAGE_RECE) {
+                convertView = inflater.inflate(R.layout.item_chat_img_rece, parent, false);
             }
             holder = new ViewHolder(convertView);
             if (convertView != null) {
@@ -129,6 +140,7 @@ public class ChatAdapter extends BaseAdapter {
             holder.tv_message_text.setText(message.getContent());
         } else if (message.getMessageType() == MyMessage.MessageType.Voice.getType()) { // 语音
             holder.tv_voice_duration.setText(message.getVoiceRecordTime() + "''");
+            Logger.e("语音路径：" + message.getFileName());
             // 语音的点击事件
             holder.layout_voice.setOnClickListener(new View.OnClickListener() {
                 @Override
@@ -136,8 +148,6 @@ public class ChatAdapter extends BaseAdapter {
 
                     if (message.getMessageState() == MyMessage.MessageState.Sucess.getType()) {
                         Logger.e("mymessage = " + message);
-                        final String filePath = FileManager.searchFile(message.getFileName(), "voice");
-                        Logger.e("文件的路径1：" + filePath);
                         final File file = new File(message.getFileName());
                         Logger.e("exists = " + file.exists());
                         if (file.exists()) {
@@ -147,16 +157,24 @@ public class ChatAdapter extends BaseAdapter {
                                 e.printStackTrace();
                             }
                         }
-//                        if (!Utils.isNull(filePath)) {
-//                            try {
-//                                RecordManager.playAudio(context, filePath);
-//                            } catch (Exception e) {
-//                                e.printStackTrace();
-//                            }
-//                        }
                     } else {
                         ToastUtils.showLongToast("语音文件异常");
                     }
+                }
+            });
+        } else if (message.getMessageType() == MyMessage.MessageType.Image.getType()) { // 图片
+            Logger.e("图片地址：" + message.getFileName());
+            Bitmap bitmap = BitmapFactory.decodeFile(message.getFileName());
+            holder.iv_message_img.setImageBitmap(bitmap);
+            holder.iv_message_img.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    final ArrayList<String> imgList = new ArrayList<>();
+                    imgList.add(message.getFileName());
+                    final Intent intent = new Intent(context, ZoomPictureActivity.class);
+                    intent.putExtra("position", 0);
+                    intent.putExtra("imgList", imgList);
+                    context.startActivity(intent);
                 }
             });
         }
@@ -181,6 +199,8 @@ public class ChatAdapter extends BaseAdapter {
         ImageView iv_voice_error;
         // 整个语音的布局
         LinearLayout layout_voice;
+        // 图片-发送消息的图片
+        ImageView iv_message_img;
 
         public ViewHolder(View convertView) {
             if (convertView == null) return;
@@ -191,6 +211,7 @@ public class ChatAdapter extends BaseAdapter {
             view_read_status = convertView.findViewById(R.id.view_read_status);
             iv_voice_error = (ImageView) convertView.findViewById(R.id.iv_voice_error);
             layout_voice = (LinearLayout) convertView.findViewById(R.id.layout_voice);
+            iv_message_img = (ImageView) convertView.findViewById(R.id.iv_message_img);
         }
     }
 }

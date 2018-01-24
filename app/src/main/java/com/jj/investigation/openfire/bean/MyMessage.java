@@ -125,6 +125,18 @@ public class MyMessage {
         this.voiceRecordTime = voiceRecordTime;
     }
 
+    /**
+     * 其他文件的构造方法，例如图片、普通文件
+     */
+    public MyMessage(String send, String receiver, String data, int oprationType, int messageType,
+                     String fileName) {
+        this.send = send;
+        this.receiver = receiver;
+        this.data = data;
+        this.oprationType = oprationType;
+        this.messageType = messageType;
+        this.fileName = fileName;
+    }
 
 
 

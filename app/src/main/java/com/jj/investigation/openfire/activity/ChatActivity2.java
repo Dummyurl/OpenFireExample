@@ -98,6 +98,8 @@ public class ChatActivity2 extends AppCompatActivity implements ChatManagerListe
                     break;
                 case MESSAGE_REFRESH:
                     ToastUtils.showLongToast("文件下载成功");
+                    Logger.e("没走啊");
+                    adapter.notifyDataSetChanged();
                     break;
                 case MESSAGE_COMPOSING:
                     tv_title.setText("正在输入...");
@@ -176,11 +178,13 @@ public class ChatActivity2 extends AppCompatActivity implements ChatManagerListe
      * JSChatBottomView的一些监听：发送消息、选择图片等
      */
     private void chatCallBackListener() {
+
         // 1.选择图片的监听
         jschat_bottom_view.setChatPictureSelectedListener(new ChatPictureSelectedListener() {
             @Override
             public void pictureSelected(ArrayList<AlbumFile> albumFiles) {
                 ToastUtils.showShortToastSafe("选择了图片：" + albumFiles.get(0).getName());
+                sendImg(albumFiles);
             }
         });
 
@@ -192,6 +196,38 @@ public class ChatActivity2 extends AppCompatActivity implements ChatManagerListe
                 sendTxt(content);
             }
         });
+    }
+
+    /**
+     * 发送图片
+     */
+    private void sendImg(ArrayList<AlbumFile> albumFiles) {
+        // 发送消息(该消息只用来在本地显示)
+        final String path = albumFiles.get(0).getPath();
+        final File file = new File(path);
+
+        final MyMessage localMessage = new MyMessage(currentUser, jid,
+                DateUtils.newDate(), MyMessage.OprationType.Send.getType(),
+                MyMessage.MessageType.Image.getType(), path);
+
+        messageList.add(localMessage);
+        adapter.notifyDataSetChanged();
+
+        // 要发送的消息(语音)，发送的消息需要别人来接收，所以发送时OprationType的值应该为Receiver而不是send
+        final MyMessage remoteMessage = new MyMessage(currentUser, jid,
+                DateUtils.newDate(), MyMessage.OprationType.Receiver.getType(),
+                MyMessage.MessageType.Image.getType(), path);
+
+        // 发送消息
+        try {
+            chat.sendMessage(remoteMessage.toJson());
+            // 发送语音
+            final OutgoingFileTransfer outgoingFileTransfer = fileTransferManager.
+                    createOutgoingFileTransfer(jid + "/Smack");
+            outgoingFileTransfer.sendFile(file, remoteMessage.toJson()); // 后面参数是对文件的描述
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
     }
 
     /**
@@ -277,7 +313,7 @@ public class ChatActivity2 extends AppCompatActivity implements ChatManagerListe
      */
     @Override
     public void processMessage(Chat chat, Message message) {
-
+        Logger.e("接收到消息：" + message.toString());
         // 1.收到输入状态
         final ExtensionElement extension = message.getExtension("http://jabber.org/protocol/chatstates");
         if (extension != null) {
@@ -345,7 +381,7 @@ public class ChatActivity2 extends AppCompatActivity implements ChatManagerListe
         // 发送消息(该消息只用来在本地显示)
         final MyMessage localMessage = new MyMessage(currentUser, jid, content,
                 DateUtils.newDate(), MyMessage.OprationType.Send.getType(),
-                recordFile.getName(), duration);
+                recordFile.getPath(), duration);
         // 根据决定路径来找录音文件播放
         localMessage.setFileLocalUrl(recordFile.getAbsolutePath());
         Logger.e("绝对路径：" + recordFile.getAbsolutePath());
@@ -353,10 +389,10 @@ public class ChatActivity2 extends AppCompatActivity implements ChatManagerListe
         messageList.add(localMessage);
         adapter.notifyDataSetChanged();
 
-        // 要发送的消息(文本)，发送的消息需要别人来接收，所以发送时OprationType的值应该为Receiver而不是send
+        // 要发送的消息(语音)，发送的消息需要别人来接收，所以发送时OprationType的值应该为Receiver而不是send
         final MyMessage remoteMessage = new MyMessage(currentUser, jid, content,
                 DateUtils.newDate(), MyMessage.OprationType.Receiver.getType(),
-                recordFile.getName(), duration);
+                recordFile.getPath(), duration);
 
         // 发送消息
         try {
@@ -376,21 +412,27 @@ public class ChatActivity2 extends AppCompatActivity implements ChatManagerListe
      */
     @Override
     public void fileTransferRequest(FileTransferRequest request) {
-        final IncomingFileTransfer accept = request.accept();
 
+        final IncomingFileTransfer accept = request.accept();
+        Logger.e("开始下载文件：" + accept.getFileName());
         // 下载文件：
         // 1.获取文件
-        final File file = new File(FileManager.createFile("voice"), accept.getFileName());
+        File file = null;
 
         try {
+            if (accept.getFileName().contains("voice")) {
+                file = new File(FileManager.createFile("voice"), accept.getFileName());
+            } else {
+                file = new File(FileManager.createFile("file"), accept.getFileName());
+            }
+            Logger.e("xiazai hou: = " + file.getPath());
             // 2.下载文件
             accept.recieveFile(file);
-            Thread.sleep(3000);
             // 3.判断文件是否下载成功:complete--下载成功，其他为失败
             if (accept.getStatus() == FileTransfer.Status.complete) {
+                updataMessageState(file, MyMessage.MessageState.Sucess);
                 android.os.Message message = handler.obtainMessage(MESSAGE_REFRESH, file.getName());
                 handler.sendMessage(message);
-                updataMessageState(file, MyMessage.MessageState.Sucess);
             } else {
                 updataMessageState(file, MyMessage.MessageState.Error);
             }
@@ -409,9 +451,16 @@ public class ChatActivity2 extends AppCompatActivity implements ChatManagerListe
      */
     public void updataMessageState(File file, MyMessage.MessageState messageState) {
         final int count = adapter.getCount();
+        MyMessage message;
         for (int i = 0; i < count; i++) {
-            final MyMessage message = adapter.getItem(i);
-            if (message.getFileName().equals(file.getName())) {
+            message = adapter.getItem(i);
+            Logger.e("message.tostring = " + message.toString());
+            Logger.e("file.getName() = " + file.getName() + ", message = " + message.getFileName());
+            Logger.e("fff = " + message.getFileName().contains(file.getName()));
+            if (message.getFileName().contains(file.getName())) {
+                // 更新消息的绝对路径（之前只是）
+                message.setFileName(file.getPath());
+                Logger.e("草泥马：" + message.getFileName());
                 message.setMessageState(messageState.getType());
             }
         }

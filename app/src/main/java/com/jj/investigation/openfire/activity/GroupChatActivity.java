@@ -91,8 +91,6 @@ public class GroupChatActivity extends AppCompatActivity implements
                 case MESSAGE_RECEIVE:
                     adapter.notifyDataSetChanged();
                     break;
-                default:
-                    break;
             }
         }
     };
@@ -199,7 +197,7 @@ public class GroupChatActivity extends AppCompatActivity implements
         // 发送消息(该消息只用来在本地显示)
         final MyMessage localMessage = new MyMessage(currentUser, jid, content,
                 DateUtils.newDate(), MyMessage.OprationType.Send.getType(),
-                recordFile.getName(), duration);
+                recordFile.getPath(), duration);
         // 根据决定路径来找录音文件播放
         localMessage.setFileLocalUrl(recordFile.getAbsolutePath());
         Logger.e("绝对路径：" + recordFile.getAbsolutePath());
@@ -240,9 +238,10 @@ public class GroupChatActivity extends AppCompatActivity implements
             // 如果是语音消息，则直接下载
             if (receiveMessage.getMessageType() == MyMessage.MessageType.Voice.getType()) {
                 // 使用广播让Activity和Service通信
-                Logger.e("fileName = " + receiveMessage.getFileName());
                 Intent intent = new Intent(DownLoadService.FILE_DOWNLOAD);
+                // 语音文件的下载地址
                 intent.putExtra("loadUrl", receiveMessage.getFileName());
+                // 语音文件下载好后保存到本地的二级目录
                 intent.putExtra("localUrl", "voice");
                 sendBroadcast(intent);
             }
@@ -272,8 +271,6 @@ public class GroupChatActivity extends AppCompatActivity implements
                 et_input_sms.getText().toString().trim(),
                 DateUtils.newDate(), MyMessage.OprationType.Receiver.getType(),
                 (String) data.getData(), duration);
-        // 消息中的录音文件地址可以是data.getData(),这里直接写的path，但是这个path是本地的路径，到请求下载
-        // 的时候是根据文件的名称（不是本地路径）来拼接的
         try {
             chat.sendMessage(remoteMessage.toJson());
         } catch (Exception e) {
@@ -296,7 +293,6 @@ public class GroupChatActivity extends AppCompatActivity implements
         public void onReceive(Context context, Intent intent) {
             if (intent.getAction().equals(DownLoadService.FILE_DOWNLOAD_SUCCESS)) {
                 final String fileName = intent.getStringExtra("fileName");
-                System.out.println("fileName = " + fileName);
                 updateState(fileName);
             }
         }
