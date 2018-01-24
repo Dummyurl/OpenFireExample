@@ -28,6 +28,7 @@ import com.jj.investigation.openfire.utils.DateUtils;
 import com.jj.investigation.openfire.utils.GsonUtils;
 import com.jj.investigation.openfire.utils.Logger;
 import com.jj.investigation.openfire.utils.ToastUtils;
+import com.jj.investigation.openfire.utils.Utils;
 import com.jj.investigation.openfire.view.VoiceRecordButton;
 
 import org.jivesoftware.smack.MessageListener;
@@ -171,6 +172,7 @@ public class GroupChatActivity extends AppCompatActivity implements
     public void clickSendMessage(View v) {
         try {
             final String content = et_input_sms.getText().toString().trim();
+            if (Utils.isNull(content)) return;
             // 发送消息(该消息只用来在本地显示)
             final MyMessage localMessage = new MyMessage(currentUser, jid, content,
                     DateUtils.newDate(), MyMessage.OprationType.Send.getType());
@@ -238,8 +240,10 @@ public class GroupChatActivity extends AppCompatActivity implements
             // 如果是语音消息，则直接下载
             if (receiveMessage.getMessageType() == MyMessage.MessageType.Voice.getType()) {
                 // 使用广播让Activity和Service通信
+                Logger.e("fileName = " + receiveMessage.getFileName());
                 Intent intent = new Intent(DownLoadService.FILE_DOWNLOAD);
-                intent.putExtra("fileName", receiveMessage.getFileName());
+                intent.putExtra("loadUrl", receiveMessage.getFileName());
+                intent.putExtra("localUrl", "voice");
                 sendBroadcast(intent);
             }
 
@@ -255,18 +259,21 @@ public class GroupChatActivity extends AppCompatActivity implements
         }
     }
 
+    /**
+     * 网络访问成功的回调
+     *
+     * @param data 返回正常的数据
+     */
     @Override
     public void onSuccess(ServletData data, int page) {
-        System.out.println("data.to = " + data.getType());
-        if ("voice".equals(data.getType())) {
-            System.out.println("草泥马咋进不来啊");
-        }
 
-        // 要发送的消息(文本)，发送的消息需要别人来接收，所以发送时OprationType的值应该为Receiver而不是send
+        // 要发送的消息，发送的消息需要别人来接收，所以发送时OprationType的值应该为Receiver而不是send
         final MyMessage remoteMessage = new MyMessage(currentUser, jid,
                 et_input_sms.getText().toString().trim(),
                 DateUtils.newDate(), MyMessage.OprationType.Receiver.getType(),
-                recordFile.getName(), duration);
+                (String) data.getData(), duration);
+        // 消息中的录音文件地址可以是data.getData(),这里直接写的path，但是这个path是本地的路径，到请求下载
+        // 的时候是根据文件的名称（不是本地路径）来拼接的
         try {
             chat.sendMessage(remoteMessage.toJson());
         } catch (Exception e) {
@@ -289,21 +296,34 @@ public class GroupChatActivity extends AppCompatActivity implements
         public void onReceive(Context context, Intent intent) {
             if (intent.getAction().equals(DownLoadService.FILE_DOWNLOAD_SUCCESS)) {
                 final String fileName = intent.getStringExtra("fileName");
+                System.out.println("fileName = " + fileName);
                 updateState(fileName);
             }
         }
     }
 
     /**
-     * 文件下载成功更新数据
+     * 文件下载成功更新数据:
+     * 目前更新的是语音消息，一旦语音下载成功，会在本地生成一个文件，fileName为语音的路径，循环所有的消息，
+     * 如果语音的网络路径中中的文件名称与本地路径中的文件名称一致，则把网络的语音路径替换为本地下载好的语音
+     * 路劲，这样点击后可以直接播放
+     * @param fileName 本地语音文件的绝对路径
      */
     private void updateState(String fileName) {
         final int count = adapter.getCount();
         MyMessage message;
+        // 本地语音文件的文件名称
+        String localFileName;
+        // 网络路径的文件的名称
+        String netFileName;
         for (int i = 0; i < count; i++) {
             message = adapter.getItem(i);
             if (message != null) {
-                if (message.getFileName().equals(fileName)) {
+                localFileName = fileName.substring(fileName.lastIndexOf("/"), fileName.length());
+                netFileName = message.getFileName().substring(message.getFileName().lastIndexOf("/"),
+                        message.getFileName().length());
+                if (localFileName.equals(netFileName)) {
+                    message.setFileName(fileName);
                     message.setMessageState(MyMessage.MessageState.Sucess.getType());
                 }
             }

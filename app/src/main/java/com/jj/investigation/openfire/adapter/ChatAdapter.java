@@ -16,9 +16,9 @@ import com.jj.investigation.openfire.smack.RecordManager;
 import com.jj.investigation.openfire.utils.FileManager;
 import com.jj.investigation.openfire.utils.Logger;
 import com.jj.investigation.openfire.utils.ToastUtils;
-import com.jj.investigation.openfire.utils.Utils;
 import com.jj.investigation.openfire.view.CircleImageView;
 
+import java.io.File;
 import java.util.List;
 
 /**
@@ -135,16 +135,25 @@ public class ChatAdapter extends BaseAdapter {
                 public void onClick(View v) {
 
                     if (message.getMessageState() == MyMessage.MessageState.Sucess.getType()) {
+                        Logger.e("mymessage = " + message);
                         final String filePath = FileManager.searchFile(message.getFileName(), "voice");
-                        Logger.e("文件的路径：" + filePath);
-                        if (!Utils.isNull(filePath)) {
+                        Logger.e("文件的路径1：" + filePath);
+                        final File file = new File(message.getFileName());
+                        Logger.e("exists = " + file.exists());
+                        if (file.exists()) {
                             try {
-                                Logger.e("文件的路径：" + filePath);
-                                RecordManager.playAudio(context, filePath);
+                                RecordManager.playAudio(context, message.getFileName());
                             } catch (Exception e) {
                                 e.printStackTrace();
                             }
                         }
+//                        if (!Utils.isNull(filePath)) {
+//                            try {
+//                                RecordManager.playAudio(context, filePath);
+//                            } catch (Exception e) {
+//                                e.printStackTrace();
+//                            }
+//                        }
                     } else {
                         ToastUtils.showLongToast("语音文件异常");
                     }

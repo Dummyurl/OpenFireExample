@@ -126,6 +126,8 @@ public class MyMessage {
     }
 
 
+
+
     public int getMessageState() {
         return messageState;
     }
@@ -215,6 +217,10 @@ public class MyMessage {
                 ", data='" + data + '\'' +
                 ", oprationType=" + oprationType +
                 ", messageType=" + messageType +
+                ", messageState=" + messageState +
+                ", fileName='" + fileName + '\'' +
+                ", fileLocalUrl='" + fileLocalUrl + '\'' +
+                ", voiceRecordTime=" + voiceRecordTime +
                 '}';
     }
 
