@@ -8,6 +8,8 @@ import android.view.inputmethod.InputMethodManager;
 
 import com.jj.investigation.openfire.AppApplication;
 
+import java.text.DecimalFormat;
+
 /**
  * 工具类
  * Created by ${R.js} on 2017/12/15.
@@ -90,4 +92,12 @@ public class Utils {
 
     }
 
+    /**
+     * 把一个数转成保留两位小数的数
+     */
+    public static String doubFormat2(Object object) {
+        DecimalFormat format = new DecimalFormat("######0.00");
+        String number = format.format(object);
+        return number;
+    }
 }

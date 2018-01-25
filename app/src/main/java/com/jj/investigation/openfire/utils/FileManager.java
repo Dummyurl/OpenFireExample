@@ -7,6 +7,7 @@ import com.loopj.android.http.AsyncHttpResponseHandler;
 import com.loopj.android.http.RequestParams;
 
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
@@ -22,6 +23,9 @@ import java.util.UUID;
 
 public class FileManager {
 
+    /**
+     * 创建文件或者目录
+     */
     public static File createFile(String filePath) {
         final File file = new File(Environment.getExternalStorageDirectory(), "js/" + filePath);
         if (!file.exists()) {
@@ -29,6 +33,57 @@ public class FileManager {
         }
         return file;
     }
+
+    /**
+     * 获取指定文件的大小
+     * @param file 文件
+     */
+    public static String getFileSize(File file) {
+        String fileSize = "";
+        String sufix = "";
+        FileInputStream fis = null;
+        try {
+            fis = new FileInputStream(file);
+            double size = fis.available();
+            if (size < 1024) {
+                sufix = "B";
+            } else if (size >= 1024 && size < 1024 * 1024) {
+                size = size / 1024;
+                sufix = "KB";
+            } else if (size >= 1024 * 1024) {
+                size = size / 1024 /1024;
+                sufix = "MB";
+            }
+
+            fileSize = Utils.doubFormat2(size) + sufix;
+        } catch (Exception e) {
+            e.printStackTrace();
+        } finally {
+            if (fis != null) {
+                try {
+                    fis.close();
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            }
+        }
+        return fileSize;
+    }
+
+    /**
+     * 获取文件的大小
+     * @param filePath 文件的路径
+     */
+    public static String getFileSize(String filePath) {
+        String fileSize = "";
+        if (!Utils.isNull(filePath)) {
+            File file = new File(filePath);
+            fileSize = getFileSize(file);
+        }
+
+        return fileSize;
+    }
+
 
     /**
      * 生成一个UUID：该值不会重复

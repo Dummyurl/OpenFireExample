@@ -1,5 +1,7 @@
 package com.jj.investigation.openfire.activity;
 
+import android.content.Intent;
+import android.net.Uri;
 import android.os.Bundle;
 import android.os.Handler;
 import android.support.annotation.Nullable;
@@ -97,7 +99,6 @@ public class ChatActivity2 extends AppCompatActivity implements ChatManagerListe
                     adapter.notifyDataSetChanged();
                     break;
                 case MESSAGE_REFRESH:
-                    ToastUtils.showLongToast("文件下载成功");
                     Logger.e("没走啊");
                     adapter.notifyDataSetChanged();
                     break;
@@ -161,7 +162,6 @@ public class ChatActivity2 extends AppCompatActivity implements ChatManagerListe
         // 获取OpenFire的文件管理器并添加上传文件的监听
         fileTransferManager = FileTransferManager.getInstanceFor(connection);
         fileTransferManager.addFileTransferListener(this);
-        Logger.e("jschat_bottom_view = " + jschat_bottom_view + ", chat = " + chat);
         jschat_bottom_view.setChatManager(chat);
     }
 
@@ -229,6 +229,39 @@ public class ChatActivity2 extends AppCompatActivity implements ChatManagerListe
             e.printStackTrace();
         }
     }
+
+    /**
+     * 发送文件
+     * @param file 要发送的文件
+     */
+    private void sendFile(File file, String fileSize) {
+        // 发送消息(该消息只用来在本地显示)
+        final MyMessage localMessage = new MyMessage(currentUser, jid,
+                DateUtils.newDate(), MyMessage.OprationType.Send.getType(),
+                MyMessage.MessageType.File.getType(), file.getName(), file.getPath(), fileSize);
+
+        messageList.add(localMessage);
+        adapter.notifyDataSetChanged();
+
+
+        // 发送远程消息
+        final MyMessage remoteMessage = new MyMessage(currentUser, jid,
+                DateUtils.newDate(), MyMessage.OprationType.Receiver.getType(),
+                MyMessage.MessageType.File.getType(), file.getName(), file.getPath(), fileSize);
+
+        // 发送消息
+        try {
+            chat.sendMessage(remoteMessage.toJson());
+            // 发送语音
+            final OutgoingFileTransfer outgoingFileTransfer = fileTransferManager.
+                    createOutgoingFileTransfer(jid + "/Smack");
+            Logger.e("发布出去：" + file.getPath());
+            outgoingFileTransfer.sendFile(file, remoteMessage.toJson()); // 后面参数是对文件的描述
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
 
     /**
      * 发送文本消息
@@ -355,8 +388,7 @@ public class ChatActivity2 extends AppCompatActivity implements ChatManagerListe
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribe(new Subscriber<ServletData>() {
                     @Override
-                    public void onCompleted() {
-                    }
+                    public void onCompleted() {}
 
                     @Override
                     public void onError(Throwable e) {
@@ -382,8 +414,6 @@ public class ChatActivity2 extends AppCompatActivity implements ChatManagerListe
         final MyMessage localMessage = new MyMessage(currentUser, jid, content,
                 DateUtils.newDate(), MyMessage.OprationType.Send.getType(),
                 recordFile.getPath(), duration);
-        // 根据决定路径来找录音文件播放
-        localMessage.setFileLocalUrl(recordFile.getAbsolutePath());
         Logger.e("绝对路径：" + recordFile.getAbsolutePath());
 
         messageList.add(localMessage);
@@ -420,20 +450,32 @@ public class ChatActivity2 extends AppCompatActivity implements ChatManagerListe
         File file = null;
 
         try {
-            if (accept.getFileName().contains("voice")) {
+            if (accept.getFileName().contains("voice")) { // 语音文件
                 file = new File(FileManager.createFile("voice"), accept.getFileName());
-            } else {
+            } else { // 其他文件：图片、普通文件等，语音也是文件，这里做区分，只是保存的目录区分开而已
                 file = new File(FileManager.createFile("file"), accept.getFileName());
             }
-            Logger.e("xiazai hou: = " + file.getPath());
-            // 2.下载文件
+            // 2.下载文件：该方法内部又开了一个子线程
             accept.recieveFile(file);
+            // 因为上面方法是在一个新的线程中，所以不会马上进入第3步，用循环来判断文件下载的状态，状态只需要
+            // 判断结果状态即可，中间不管是初始化、数据流传输中等都不用管，只要结果状态即可。从Openfire的代码
+            // 中可以看到结果有下面3个，其中任何一个状态发生，则结束循环
+            while (true) {
+                Thread.sleep(200);
+                if (accept.getStatus() == FileTransfer.Status.error ||
+                        accept.getStatus() == FileTransfer.Status.complete ||
+                        accept.getStatus() == FileTransfer.Status.cancelled) {
+                    break;
+                }
+            }
             // 3.判断文件是否下载成功:complete--下载成功，其他为失败
             if (accept.getStatus() == FileTransfer.Status.complete) {
+                Logger.e("下载完毕");
                 updataMessageState(file, MyMessage.MessageState.Sucess);
-                android.os.Message message = handler.obtainMessage(MESSAGE_REFRESH, file.getName());
+                android.os.Message message = handler.obtainMessage(MESSAGE_RECEIVE, file.getName());
                 handler.sendMessage(message);
             } else {
+                Logger.e("下载为完成");
                 updataMessageState(file, MyMessage.MessageState.Error);
             }
         } catch (Exception e) {
@@ -460,9 +502,37 @@ public class ChatActivity2 extends AppCompatActivity implements ChatManagerListe
             if (message.getFileName().contains(file.getName())) {
                 // 更新消息的绝对路径（之前只是）
                 message.setFileName(file.getPath());
-                Logger.e("草泥马：" + message.getFileName());
                 message.setMessageState(messageState.getType());
             }
+        }
+    }
+
+    /**
+     * 接收系统返回的文件
+     */
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+        if (data == null) {
+            ToastUtils.showShortToastSafe("没有找到文件");
+            return;
+        }
+        switch (requestCode) {
+            case JSChatBottomView.FILE_SELECT_CODE:
+                if (resultCode == -1) {
+                    final Uri uri = data.getData();
+                    if (uri != null) {
+                        if (uri.getScheme().equals("file") || uri.getScheme().equals("content")) {
+                            String path = uri.getEncodedPath();
+                            path = path.replaceAll("external_files", "storage/emulated/0");
+                            final File file = new File(path);
+                            sendFile(file, FileManager.getFileSize(file));
+                        } else {
+                            ToastUtils.showShortToastSafe("不支持该格式");
+                        }
+                    }
+                }
+                break;
         }
     }
 }

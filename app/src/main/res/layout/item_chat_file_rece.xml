@@ -1,0 +1,74 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:background="#F0F0F0"
+    android:orientation="vertical"
+    android:padding="10dip">
+
+    <TextView
+        android:id="@+id/tv_chat_time"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_centerHorizontal="true"
+        android:text="2016-9-7"
+        android:textColor="#999999"
+        android:textSize="12sp" />
+
+    <LinearLayout
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_below="@+id/tv_chat_time"
+        android:layout_marginTop="5dp"
+        android:background="@color/transparent"
+        android:orientation="horizontal"
+        android:visibility="visible">
+
+        <com.jj.investigation.openfire.view.CircleImageView
+            android:id="@+id/iv_head_view"
+            android:layout_width="40dp"
+            android:layout_height="40dp"
+            android:scaleType="fitXY"
+            android:src="@drawable/miniq_logo" />
+
+        <RelativeLayout
+            android:id="@+id/rl_chat_item_file"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginRight="50dp"
+            android:background="@drawable/chatfrom_bg"
+            android:gravity="center_vertical"
+            android:paddingBottom="3dp"
+            android:paddingRight="13dp"
+            android:paddingTop="3dp">
+
+            <ImageView
+                android:id="@+id/iv_chat_item_fileImg"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_margin="5dp"
+                android:src="@drawable/js_chat_item_file"/>
+
+            <TextView
+                android:id="@+id/tv_chat_item_fileName"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:maxLines="2"
+                android:layout_margin="5dp"
+                android:layout_toRightOf="@+id/iv_chat_item_fileImg"
+                android:text=""/>
+
+
+            <TextView
+                android:id="@+id/tv_chat_item_fileSize"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_alignParentBottom="true"
+                android:layout_margin="5dp"
+                android:layout_toRightOf="@+id/iv_chat_item_fileImg"
+                android:text=""
+                android:textColor="@color/tab_text_normal"/>
+        </RelativeLayout>
+
+    </LinearLayout>
+</RelativeLayout>

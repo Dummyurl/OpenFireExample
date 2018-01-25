@@ -1,6 +1,9 @@
 package com.jj.investigation.openfire.view.chatbottom;
 
+import android.app.Activity;
+import android.content.ActivityNotFoundException;
 import android.content.Context;
+import android.content.Intent;
 import android.support.annotation.NonNull;
 import android.util.AttributeSet;
 import android.view.LayoutInflater;
@@ -13,6 +16,7 @@ import android.widget.LinearLayout;
 import com.jj.investigation.openfire.R;
 import com.jj.investigation.openfire.impl.ChatPictureSelectedListener;
 import com.jj.investigation.openfire.impl.ChatTextSendListener;
+import com.jj.investigation.openfire.utils.ToastUtils;
 import com.jj.investigation.openfire.utils.Utils;
 import com.yanzhenjie.album.Album;
 import com.yanzhenjie.album.AlbumFile;
@@ -44,6 +48,7 @@ public class JSChatBottomView extends LinearLayout {
     // 发送文本消息的监听
     private ChatTextSendListener chatTextSendListener;
     private EditText et_message;
+    public static final int FILE_SELECT_CODE = 100;
 
     public JSChatBottomView(Context context) {
         this(context, null);
@@ -70,7 +75,10 @@ public class JSChatBottomView extends LinearLayout {
     }
 
     /**
-     * 设置点击事件
+     * 设置点击事件的回调
+     * 之所以要回调，是因为要在Activity中发送消息，发送消息也可以在各自的View中发送，但是还要
+     * 为每个View设置获取jid、对方jid、chat等各种参数，也比较麻烦，现在只是做demo，先要做出效果，
+     * 做好后可以统一做优化
      */
     private void initClickListener() {
 
@@ -126,7 +134,9 @@ public class JSChatBottomView extends LinearLayout {
         jschat_plus_menu.setPlusMenuItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-                if (position < 2) {
+                if (position ==0) {
+                    selectFile();
+                } else if (position == 1) {
                     selectPicture();
                 }
             }
@@ -157,7 +167,9 @@ public class JSChatBottomView extends LinearLayout {
     }
 
     /**
-     * 设置选择图片完成的监听
+     * 设置选择图片完成的监听:
+     * 选择普通文件不用监听，因为打开系统文件，选择好之后可以直接在Activity的
+     * onActivityResult中得到文件，所以省去了来回回调的步骤
      */
     public void setChatPictureSelectedListener(ChatPictureSelectedListener chatPictureSelectedListener) {
         this.chatSelectPictureListener = chatPictureSelectedListener;
@@ -169,6 +181,7 @@ public class JSChatBottomView extends LinearLayout {
     public void setChatTextSendListener(ChatTextSendListener chatTextSendListener) {
         this.chatTextSendListener = chatTextSendListener;
     }
+
 
     /**
      * 选择图片
@@ -193,5 +206,20 @@ public class JSChatBottomView extends LinearLayout {
                     }
                 })
                 .start();
+    }
+
+    /**
+     * 选择文件
+     */
+    private void selectFile() {
+        Intent intent = new Intent(Intent.ACTION_GET_CONTENT);
+        intent.setType("*/*");
+        intent.addCategory(Intent.CATEGORY_OPENABLE);
+        try {
+            ((Activity)getContext()).startActivityForResult(Intent.createChooser(intent, "请选择文件"),
+                    FILE_SELECT_CODE);
+        } catch (ActivityNotFoundException ex) {
+            ToastUtils.showShortToastSafe("此手机不支持!");
+        }
     }
 }

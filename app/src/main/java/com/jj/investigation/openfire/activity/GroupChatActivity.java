@@ -198,8 +198,6 @@ public class GroupChatActivity extends AppCompatActivity implements
         final MyMessage localMessage = new MyMessage(currentUser, jid, content,
                 DateUtils.newDate(), MyMessage.OprationType.Send.getType(),
                 recordFile.getPath(), duration);
-        // 根据决定路径来找录音文件播放
-        localMessage.setFileLocalUrl(recordFile.getAbsolutePath());
         Logger.e("绝对路径：" + recordFile.getAbsolutePath());
 
         messageList.add(localMessage);

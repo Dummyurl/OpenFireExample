@@ -90,10 +90,12 @@ public class MyMessage {
     private int messageType = MessageType.Text.getType();
     // 消息的状态
     private int messageState;
-    // 发送文件的文件名称
+    // 发送文件的文件名称(其实后来这个当做文件的url了，不管是本地的url还是网路的url，因为做demo图简单，以后要要区分开来)
     private String fileName;
-    // 文件在手机本地的路径
-    private String fileLocalUrl;
+    // 网络的url：也可以当做本地的用
+    private String fileUrl;
+    // 文件的大小
+    private String fileSize;
     // 语音文件的时长
     private long voiceRecordTime;
 
@@ -126,7 +128,7 @@ public class MyMessage {
     }
 
     /**
-     * 其他文件的构造方法，例如图片、普通文件
+     * 图片消息构造方法
      */
     public MyMessage(String send, String receiver, String data, int oprationType, int messageType,
                      String fileName) {
@@ -137,6 +139,22 @@ public class MyMessage {
         this.messageType = messageType;
         this.fileName = fileName;
     }
+
+    /**
+     * 文件消息构造方法
+     */
+    public MyMessage(String send, String receiver, String data, int oprationType, int messageType,
+                     String fileName, String fileUrl, String fileSize) {
+        this.send = send;
+        this.receiver = receiver;
+        this.data = data;
+        this.oprationType = oprationType;
+        this.messageType = messageType;
+        this.fileName = fileName;
+        this.fileSize = fileSize;
+        this.fileUrl = fileUrl;
+    }
+
 
 
 
@@ -212,12 +230,21 @@ public class MyMessage {
         this.voiceRecordTime = voiceRecordTime;
     }
 
-    public String getFileLocalUrl() {
-        return fileLocalUrl;
+    public String getFileSize() {
+        return fileSize;
     }
 
-    public void setFileLocalUrl(String fileLocalUrl) {
-        this.fileLocalUrl = fileLocalUrl;
+    public void setFileSize(String fileSize) {
+        this.fileSize = fileSize;
+    }
+
+
+    public String getFileUrl() {
+        return fileUrl;
+    }
+
+    public void setFileUrl(String fileUrl) {
+        this.fileUrl = fileUrl;
     }
 
     @Override
@@ -231,7 +258,8 @@ public class MyMessage {
                 ", messageType=" + messageType +
                 ", messageState=" + messageState +
                 ", fileName='" + fileName + '\'' +
-                ", fileLocalUrl='" + fileLocalUrl + '\'' +
+                ", fileUrl='" + fileUrl + '\'' +
+                ", fileSize='" + fileSize + '\'' +
                 ", voiceRecordTime=" + voiceRecordTime +
                 '}';
     }

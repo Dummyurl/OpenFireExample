@@ -3,7 +3,6 @@ package com.jj.investigation.openfire.adapter;
 import android.content.Context;
 import android.content.Intent;
 import android.graphics.Bitmap;
-import android.graphics.BitmapFactory;
 import android.media.MediaPlayer;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -11,12 +10,14 @@ import android.view.ViewGroup;
 import android.widget.BaseAdapter;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
+import android.widget.RelativeLayout;
 import android.widget.TextView;
 
 import com.jj.investigation.openfire.R;
 import com.jj.investigation.openfire.activity.ZoomPictureActivity;
 import com.jj.investigation.openfire.bean.MyMessage;
 import com.jj.investigation.openfire.smack.RecordManager;
+import com.jj.investigation.openfire.utils.BitmapUtils;
 import com.jj.investigation.openfire.utils.Logger;
 import com.jj.investigation.openfire.utils.ToastUtils;
 import com.jj.investigation.openfire.view.CircleImageView;
@@ -101,6 +102,9 @@ public class ChatAdapter extends BaseAdapter {
         if (message.getMessageType() == MyMessage.MessageType.Image.getType()) {
             return message.getOprationType() == MyMessage.OprationType.Send.getType() ? MESSAGE_TYPE_IMAGE_SENT : MESSAGE_TYPE_IMAGE_RECE;
         }
+        if (message.getMessageType() == MyMessage.MessageType.File.getType()) {
+            return message.getOprationType() == MyMessage.OprationType.Send.getType() ? MESSAGE_TYPE_FILE_SENT : MESSAGE_TYPE_FILE_RECE;
+        }
         return -1;
     }
 
@@ -121,10 +125,14 @@ public class ChatAdapter extends BaseAdapter {
                 convertView = inflater.inflate(R.layout.item_chat_voice_rece, parent, false);
             } else if (getItemViewType(position) == MESSAGE_TYPE_VOICE_SENT) {
                 convertView = inflater.inflate(R.layout.item_chat_voice_sent, parent, false);
-            } else if (getItemViewType(position) == MESSAGE_TYPE_IMAGE_SENT) {
+            } else if (getItemViewType(position) == MESSAGE_TYPE_IMAGE_SENT) { // 图片
                 convertView = inflater.inflate(R.layout.item_chat_img_sent, parent, false);
             } else if (getItemViewType(position) == MESSAGE_TYPE_IMAGE_RECE) {
                 convertView = inflater.inflate(R.layout.item_chat_img_rece, parent, false);
+            } else if (getItemViewType(position) == MESSAGE_TYPE_FILE_RECE) { // 文件
+                convertView = inflater.inflate(R.layout.item_chat_file_rece, parent, false);
+            } else if (getItemViewType(position) == MESSAGE_TYPE_FILE_SENT) {
+                convertView = inflater.inflate(R.layout.item_chat_file_sent, parent, false);
             }
             holder = new ViewHolder(convertView);
             if (convertView != null) {
@@ -147,7 +155,6 @@ public class ChatAdapter extends BaseAdapter {
                 public void onClick(View v) {
 
                     if (message.getMessageState() == MyMessage.MessageState.Sucess.getType()) {
-                        Logger.e("mymessage = " + message);
                         final File file = new File(message.getFileName());
                         Logger.e("exists = " + file.exists());
                         if (file.exists()) {
@@ -164,7 +171,7 @@ public class ChatAdapter extends BaseAdapter {
             });
         } else if (message.getMessageType() == MyMessage.MessageType.Image.getType()) { // 图片
             Logger.e("图片地址：" + message.getFileName());
-            Bitmap bitmap = BitmapFactory.decodeFile(message.getFileName());
+            Bitmap bitmap = BitmapUtils.createImage(message.getFileName());
             holder.iv_message_img.setImageBitmap(bitmap);
             holder.iv_message_img.setOnClickListener(new View.OnClickListener() {
                 @Override
@@ -175,6 +182,16 @@ public class ChatAdapter extends BaseAdapter {
                     intent.putExtra("position", 0);
                     intent.putExtra("imgList", imgList);
                     context.startActivity(intent);
+                }
+            });
+        } else if (message.getMessageType() == MyMessage.MessageType.File.getType()) { // 文件
+            Logger.e("文件地址：" + message.getFileName());
+            holder.tv_chat_item_fileName.setText(message.getFileName());
+            holder.tv_chat_item_fileSize.setText(message.getFileSize());
+            holder.rl_chat_item_file.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    ToastUtils.showLongToast("打开文件");
                 }
             });
         }
@@ -201,17 +218,32 @@ public class ChatAdapter extends BaseAdapter {
         LinearLayout layout_voice;
         // 图片-发送消息的图片
         ImageView iv_message_img;
+        // file消息的父容器：用来做点击事件
+        RelativeLayout rl_chat_item_file;
+        // 文件名称
+        TextView tv_chat_item_fileName;
+        // 文件大小
+        TextView tv_chat_item_fileSize;
+
 
         public ViewHolder(View convertView) {
             if (convertView == null) return;
-            tv_chat_time = (TextView) convertView.findViewById(R.id.tv_chat_time);
+            view_read_status = convertView.findViewById(R.id.view_read_status);
+
             iv_head_view = (CircleImageView) convertView.findViewById(R.id.iv_head_view);
+
+            tv_chat_time = (TextView) convertView.findViewById(R.id.tv_chat_time);
             tv_message_text = (TextView) convertView.findViewById(R.id.tv_message_text);
             tv_voice_duration = (TextView) convertView.findViewById(R.id.tv_voice_duration);
-            view_read_status = convertView.findViewById(R.id.view_read_status);
+            tv_chat_item_fileName = (TextView) convertView.findViewById(R.id.tv_chat_item_fileName);
+            tv_chat_item_fileSize = (TextView) convertView.findViewById(R.id.tv_chat_item_fileSize);
+
             iv_voice_error = (ImageView) convertView.findViewById(R.id.iv_voice_error);
-            layout_voice = (LinearLayout) convertView.findViewById(R.id.layout_voice);
             iv_message_img = (ImageView) convertView.findViewById(R.id.iv_message_img);
+
+            layout_voice = (LinearLayout) convertView.findViewById(R.id.layout_voice);
+
+            rl_chat_item_file = (RelativeLayout) convertView.findViewById(R.id.rl_chat_item_file);
         }
     }
 }

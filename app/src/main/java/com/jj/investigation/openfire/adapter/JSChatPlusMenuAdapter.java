@@ -10,6 +10,7 @@ import android.widget.TextView;
 import com.jj.investigation.openfire.R;
 
 /**
+ * 聊天页面--下方输入框--点击+号弹出来的menu菜单的adapter
  * Created by ${R.js} on 2018/1/22.
  */
 
@@ -17,10 +18,10 @@ public class JSChatPlusMenuAdapter extends BaseAdapter {
 
     private Context context;
     private String[] desc = {
-            "拍照", "图片", "位置"
+            "文件", "图片", "位置"
     };
     private int[] imgs = {
-            R.drawable.js_chat_takepic_selector,
+            R.drawable.js_chat_file_selector,
             R.drawable.js_chat_image_selector,
             R.drawable.js_chat_location_selector
     };
