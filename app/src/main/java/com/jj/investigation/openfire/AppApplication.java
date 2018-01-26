@@ -2,6 +2,8 @@ package com.jj.investigation.openfire;
 
 import android.app.Application;
 
+import com.baidu.mapapi.SDKInitializer;
+
 import org.jivesoftware.smack.android.AndroidSmackInitializer;
 
 /**
@@ -16,9 +18,13 @@ public class AppApplication extends Application {
     public void onCreate() {
         super.onCreate();
 
+        this.application = this;
+
         //初始化Smack客户端
         new AndroidSmackInitializer().initialize();
-        this.application = this;
+
+        // 百度地图初始化
+        SDKInitializer.initialize(getApplicationContext());
     }
 
     public static Application getApplication() {

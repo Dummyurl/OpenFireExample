@@ -17,12 +17,19 @@ android {
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
         }
     }
+
+    sourceSets{
+        main{
+            jniLibs.srcDir 'libs'
+        }
+    }
 }
 
 repositories {
     maven {
         url 'https://oss.sonatype.org/content/repositories/snapshots'
     }
+    jcenter()
     mavenCentral()
 }
 
@@ -50,5 +57,7 @@ dependencies {
     compile 'com.squareup.picasso:picasso:2.3.2'
     compile 'com.android.support:design:25.2.0'
     compile 'com.yanzhenjie:album:2.0.0-alpha'
+    compile 'jp.wasabeef:richeditor-android:1.2.2'
     compile files('libs/android-async-http-1.4.3.jar')
+    compile files('libs/BaiduLBS_Android.jar')
 }
