@@ -38,6 +38,7 @@ public class JSBaiDuMapActivity extends AppCompatActivity implements View.OnClic
 
     static BDLocation lastLocation = null;
     private BaiduMap mBaiduMap;
+    private TextView tv_right;
 
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
@@ -52,7 +53,7 @@ public class JSBaiDuMapActivity extends AppCompatActivity implements View.OnClic
     private void initView() {
         mMapView = (MapView) findViewById(R.id.bmapView);
         TextView tv_left = (TextView) findViewById(R.id.tv_left);
-        TextView tv_right = (TextView) findViewById(R.id.tv_right);
+        tv_right = (TextView) findViewById(R.id.tv_right);
         TextView tv_title = (TextView) findViewById(R.id.tv_title);
         tv_left.setVisibility(View.VISIBLE);
         tv_right.setVisibility(View.VISIBLE);
@@ -66,6 +67,12 @@ public class JSBaiDuMapActivity extends AppCompatActivity implements View.OnClic
 
         Intent intent = getIntent();
         double latitude = intent.getDoubleExtra("latitude", 0);
+        boolean send = intent.getBooleanExtra("send", true);
+        if (send) {
+            tv_right.setVisibility(View.VISIBLE);
+        } else {
+            tv_right.setVisibility(View.GONE);
+        }
         MyLocationConfiguration.LocationMode mCurrentMode = MyLocationConfiguration.LocationMode.NORMAL;
         mBaiduMap = mMapView.getMap();
         MapStatusUpdate msu = MapStatusUpdateFactory.zoomTo(15.0f);
@@ -88,7 +95,7 @@ public class JSBaiDuMapActivity extends AppCompatActivity implements View.OnClic
 
     private void showMap(double latitude, double longtitude) {
         LatLng llA = new LatLng(latitude, longtitude);
-        CoordinateConverter converter= new CoordinateConverter();
+        CoordinateConverter converter = new CoordinateConverter();
         converter.coord(llA);
         converter.from(CoordinateConverter.CoordType.COMMON);
         LatLng convertLatLng = converter.convert();
@@ -139,6 +146,7 @@ public class JSBaiDuMapActivity extends AppCompatActivity implements View.OnClic
         mMapView.onDestroy();
         super.onDestroy();
     }
+
     private void initMapView() {
         mMapView.setLongClickable(true);
     }
@@ -183,7 +191,7 @@ public class JSBaiDuMapActivity extends AppCompatActivity implements View.OnClic
             lastLocation = location;
             mBaiduMap.clear();
             LatLng llA = new LatLng(lastLocation.getLatitude(), lastLocation.getLongitude());
-            CoordinateConverter converter= new CoordinateConverter();
+            CoordinateConverter converter = new CoordinateConverter();
             converter.coord(llA);
             converter.from(CoordinateConverter.CoordType.COMMON);
             LatLng convertLatLng = converter.convert();

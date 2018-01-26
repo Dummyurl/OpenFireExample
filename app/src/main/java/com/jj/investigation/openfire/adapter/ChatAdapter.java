@@ -14,12 +14,14 @@ import android.widget.RelativeLayout;
 import android.widget.TextView;
 
 import com.jj.investigation.openfire.R;
+import com.jj.investigation.openfire.activity.JSBaiDuMapActivity;
 import com.jj.investigation.openfire.activity.ZoomPictureActivity;
 import com.jj.investigation.openfire.bean.MyMessage;
 import com.jj.investigation.openfire.smack.RecordManager;
 import com.jj.investigation.openfire.utils.BitmapUtils;
 import com.jj.investigation.openfire.utils.Logger;
 import com.jj.investigation.openfire.utils.ToastUtils;
+import com.jj.investigation.openfire.utils.Utils;
 import com.jj.investigation.openfire.view.CircleImageView;
 
 import java.io.File;
@@ -49,7 +51,7 @@ public class ChatAdapter extends BaseAdapter {
     private static final int MESSAGE_TYPE_IMAGE_RECE = 5;
     // 位置
     private static final int MESSAGE_TYPE_LOCATION_SENT = 6;
-    private static final int MESSAGE_TYPE_LOCATION_RECV = 7;
+    private static final int MESSAGE_TYPE_LOCATION_RECE = 7;
     // 视频
     private static final int MESSAGE_TYPE_VIDEO_SENT = 8;
     private static final int MESSAGE_TYPE_VIDEO_RECE = 9;
@@ -105,6 +107,9 @@ public class ChatAdapter extends BaseAdapter {
         if (message.getMessageType() == MyMessage.MessageType.File.getType()) {
             return message.getOprationType() == MyMessage.OprationType.Send.getType() ? MESSAGE_TYPE_FILE_SENT : MESSAGE_TYPE_FILE_RECE;
         }
+        if (message.getMessageType() == MyMessage.MessageType.Location.getType()) {
+            return message.getOprationType() == MyMessage.OprationType.Send.getType() ? MESSAGE_TYPE_LOCATION_SENT : MESSAGE_TYPE_LOCATION_RECE;
+        }
         return -1;
     }
 
@@ -133,6 +138,10 @@ public class ChatAdapter extends BaseAdapter {
                 convertView = inflater.inflate(R.layout.item_chat_file_rece, parent, false);
             } else if (getItemViewType(position) == MESSAGE_TYPE_FILE_SENT) {
                 convertView = inflater.inflate(R.layout.item_chat_file_sent, parent, false);
+            } else if (getItemViewType(position) == MESSAGE_TYPE_LOCATION_RECE) { // 文件
+                convertView = inflater.inflate(R.layout.item_chat_location_rece, parent, false);
+            } else if (getItemViewType(position) == MESSAGE_TYPE_LOCATION_SENT) {
+                convertView = inflater.inflate(R.layout.item_chat_location_sent, parent, false);
             }
             holder = new ViewHolder(convertView);
             if (convertView != null) {
@@ -194,6 +203,20 @@ public class ChatAdapter extends BaseAdapter {
                     ToastUtils.showLongToast("打开文件");
                 }
             });
+        } else if (message.getMessageType() == MyMessage.MessageType.Location.getType()) { // 地理位置
+            holder.tv_chat_item_location.setText(message.getAddress());
+            holder.tv_chat_item_location.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    final Intent intent = new Intent(context, JSBaiDuMapActivity.class);
+                    if (!Utils.isNull(message.getLatitude()) && ! Utils.isNull(message.getLongitude()))
+                    intent.putExtra("latitude", Double.valueOf(message.getLatitude()));
+                    intent.putExtra("longitude", Double.valueOf(message.getLongitude()));
+                    intent.putExtra("address", message.getAddress());
+                    intent.putExtra("send", false);
+                    context.startActivity(intent);
+                }
+            });
         }
         holder.tv_chat_time.setText(message.getData());
 
@@ -224,6 +247,8 @@ public class ChatAdapter extends BaseAdapter {
         TextView tv_chat_item_fileName;
         // 文件大小
         TextView tv_chat_item_fileSize;
+        // 地理位置描述
+        TextView tv_chat_item_location;
 
 
         public ViewHolder(View convertView) {
@@ -237,6 +262,7 @@ public class ChatAdapter extends BaseAdapter {
             tv_voice_duration = (TextView) convertView.findViewById(R.id.tv_voice_duration);
             tv_chat_item_fileName = (TextView) convertView.findViewById(R.id.tv_chat_item_fileName);
             tv_chat_item_fileSize = (TextView) convertView.findViewById(R.id.tv_chat_item_fileSize);
+            tv_chat_item_location = (TextView) convertView.findViewById(R.id.tv_chat_item_location);
 
             iv_voice_error = (ImageView) convertView.findViewById(R.id.iv_voice_error);
             iv_message_img = (ImageView) convertView.findViewById(R.id.iv_message_img);

@@ -287,6 +287,44 @@ public class ChatActivity extends AppCompatActivity implements ChatManagerListen
 
 
     /**
+     * 发送地理位置消息
+     */
+    private void sendLocation(double latitude, double longitude, String address) {
+        try {
+            // 1.发送消息(该消息只用来在本地显示)
+            final MyMessage localMessage = new MyMessage();
+            localMessage.setSend(currentUser);
+            localMessage.setReceiver(jid);
+            localMessage.setData(DateUtils.newDate());
+            localMessage.setOprationType(MyMessage.OprationType.Send.getType());
+            localMessage.setMessageType(MyMessage.MessageType.Location.getType());
+            localMessage.setAddress(address);
+            localMessage.setLatitude(String.valueOf(latitude));
+            localMessage.setLongitude(String.valueOf(longitude));
+
+            messageList.add(localMessage);
+            adapter.notifyDataSetChanged();
+
+            // 2.要发送的消息，发送的消息需要别人来接收，所以发送时OprationType的值应该为Receiver而不是send
+            final MyMessage remoteMessage = new MyMessage();
+            remoteMessage.setSend(currentUser);
+            remoteMessage.setReceiver(jid);
+            remoteMessage.setData(DateUtils.newDate());
+            remoteMessage.setOprationType(MyMessage.OprationType.Receiver.getType());
+            remoteMessage.setMessageType(MyMessage.MessageType.Location.getType());
+            remoteMessage.setAddress(address);
+            remoteMessage.setLatitude(String.valueOf(latitude));
+            remoteMessage.setLongitude(String.valueOf(longitude));
+            chat.sendMessage(remoteMessage.toJson());
+            pushRecord(from_uid, to_uid);
+        } catch (Exception e) {
+            e.printStackTrace();
+            Log.e("发送消息异常：", e.toString());
+        }
+    }
+
+
+    /**
      * 根据jid查询用户的信息：
      * 自己和对方的信息
      * 这个要改了，聊天记录要和用户信息一起返回，只是用一个接口即可
@@ -513,25 +551,46 @@ public class ChatActivity extends AppCompatActivity implements ChatManagerListen
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
         if (data == null) {
-            ToastUtils.showShortToastSafe("没有找到文件");
+            ToastUtils.showShortToastSafe("找不到数据");
             return;
         }
+        Logger.e("返回的数据：" + data.toString());
         switch (requestCode) {
             case JSChatBottomView.FILE_SELECT_CODE:
-                if (resultCode == -1) {
-                    final Uri uri = data.getData();
-                    if (uri != null) {
-                        if (uri.getScheme().equals("file") || uri.getScheme().equals("content")) {
-                            String path = uri.getEncodedPath();
-                            path = path.replaceAll("external_files", "storage/emulated/0");
-                            final File file = new File(path);
-                            sendFile(file, FileManager.getFileSize(file));
-                        } else {
-                            ToastUtils.showShortToastSafe("不支持该格式");
-                        }
-                    }
-                }
+                dealFileData(resultCode, data);
                 break;
+            case JSChatBottomView.LOCATION_SELECT_CODE:
+                dealLocationData(data);
+                break;
+        }
+    }
+
+    /**
+     * 处理返回的位置信息
+     */
+    private void dealLocationData(Intent data) {
+        final double latitude = data.getDoubleExtra("latitude", 0);
+        final double longitude = data.getDoubleExtra("longitude", 0);
+        final String address = data.getStringExtra("address");
+        sendLocation(latitude, longitude, address);
+    }
+
+    /**
+     * 处理返回的file文件
+     */
+    private void dealFileData(int resultCode, Intent data) {
+        if (resultCode == -1) {
+            final Uri uri = data.getData();
+            if (uri != null) {
+                if (uri.getScheme().equals("file") || uri.getScheme().equals("content")) {
+                    String path = uri.getEncodedPath();
+                    path = path.replaceAll("external_files", "storage/emulated/0");
+                    final File file = new File(path);
+                    sendFile(file, FileManager.getFileSize(file));
+                } else {
+                    ToastUtils.showShortToastSafe("不支持该格式");
+                }
+            }
         }
     }
 }

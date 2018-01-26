@@ -14,6 +14,7 @@ import android.widget.FrameLayout;
 import android.widget.LinearLayout;
 
 import com.jj.investigation.openfire.R;
+import com.jj.investigation.openfire.activity.JSBaiDuMapActivity;
 import com.jj.investigation.openfire.impl.ChatPictureSelectedListener;
 import com.jj.investigation.openfire.impl.ChatTextSendListener;
 import com.jj.investigation.openfire.utils.ToastUtils;
@@ -48,7 +49,10 @@ public class JSChatBottomView extends LinearLayout {
     // 发送文本消息的监听
     private ChatTextSendListener chatTextSendListener;
     private EditText et_message;
+    // 选择文件
     public static final int FILE_SELECT_CODE = 100;
+    // 选择地理位置
+    public static final int LOCATION_SELECT_CODE = 101;
 
     public JSChatBottomView(Context context) {
         this(context, null);
@@ -138,6 +142,8 @@ public class JSChatBottomView extends LinearLayout {
                     selectFile();
                 } else if (position == 1) {
                     selectPicture();
+                } else if (position == 2) {
+                    selectLocation();
                 }
             }
         });
@@ -221,5 +227,13 @@ public class JSChatBottomView extends LinearLayout {
         } catch (ActivityNotFoundException ex) {
             ToastUtils.showShortToastSafe("此手机不支持!");
         }
+    }
+
+    /**
+     * 选择位置
+     */
+    private void selectLocation() {
+        final Intent intent = new Intent(getContext(), JSBaiDuMapActivity.class);
+        ((Activity)getContext()).startActivityForResult(intent, LOCATION_SELECT_CODE);
     }
 }

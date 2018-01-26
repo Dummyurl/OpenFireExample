@@ -9,6 +9,10 @@ import com.jj.investigation.openfire.utils.GsonUtils;
 
 public class MyMessage {
 
+    public MyMessage() {
+
+    }
+
     /**
      * 消息操作者类型：发送者还是接收者
      */
@@ -98,6 +102,12 @@ public class MyMessage {
     private String fileSize;
     // 语音文件的时长
     private long voiceRecordTime;
+    // 地位位置--经度
+    private String longitude;
+    // 地位位置--纬度
+    private String latitude;
+    // 地理位置信息
+    private String address;
 
 
     /**
@@ -111,6 +121,8 @@ public class MyMessage {
         this.oprationType = oprationType;
         this.messageType = MessageType.Text.getType();
     }
+
+
 
     /**
      * 语音消息构造方法
@@ -154,8 +166,6 @@ public class MyMessage {
         this.fileSize = fileSize;
         this.fileUrl = fileUrl;
     }
-
-
 
 
     public int getMessageState() {
@@ -247,6 +257,30 @@ public class MyMessage {
         this.fileUrl = fileUrl;
     }
 
+    public String getLongitude() {
+        return longitude;
+    }
+
+    public void setLongitude(String longitude) {
+        this.longitude = longitude;
+    }
+
+    public String getLatitude() {
+        return latitude;
+    }
+
+    public void setLatitude(String latitude) {
+        this.latitude = latitude;
+    }
+
+    public String getAddress() {
+        return address;
+    }
+
+    public void setAddress(String address) {
+        this.address = address;
+    }
+
     @Override
     public String toString() {
         return "MyMessage{" +
@@ -261,6 +295,9 @@ public class MyMessage {
                 ", fileUrl='" + fileUrl + '\'' +
                 ", fileSize='" + fileSize + '\'' +
                 ", voiceRecordTime=" + voiceRecordTime +
+                ", longitude='" + longitude + '\'' +
+                ", latitude='" + latitude + '\'' +
+                ", address='" + address + '\'' +
                 '}';
     }
 

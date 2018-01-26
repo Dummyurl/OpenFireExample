@@ -107,6 +107,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
 
     private void initView() {
+
         TextView tv_title = (TextView) findViewById(R.id.tv_title);
         tv_title.setText("搜索好友");
         TextView tv_right = (TextView) findViewById(R.id.tv_right);
