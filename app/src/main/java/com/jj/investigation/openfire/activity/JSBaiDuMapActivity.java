@@ -26,7 +26,7 @@ import com.baidu.mapapi.utils.CoordinateConverter;
 import com.jj.investigation.openfire.R;
 
 /**
- * 发送或显示百度地图的页面
+ * 选择发送地理位置或显示百度地图的页面
  * Created by ${R.js} on 2018/1/26.
  */
 
@@ -66,6 +66,7 @@ public class JSBaiDuMapActivity extends AppCompatActivity implements View.OnClic
     private void initData() {
 
         Intent intent = getIntent();
+        // 是否显示右上角的发送按钮
         double latitude = intent.getDoubleExtra("latitude", 0);
         boolean send = intent.getBooleanExtra("send", true);
         if (send) {

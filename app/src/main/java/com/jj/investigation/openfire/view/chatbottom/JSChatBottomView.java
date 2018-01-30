@@ -113,6 +113,7 @@ public class JSChatBottomView extends LinearLayout {
                     Utils.hintKbTwo(context, jschat_key_view);
                     fl_menu_container.setVisibility(View.VISIBLE);
                     jschat_emoj_menu.setVisibility(View.VISIBLE);
+                    jschat_plus_menu.setVisibility(View.GONE);
                 } else {
                     if (jschat_plus_menu.getVisibility() == View.VISIBLE) {
                         jschat_plus_menu.setVisibility(View.GONE);

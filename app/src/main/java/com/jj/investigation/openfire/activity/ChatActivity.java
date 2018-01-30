@@ -55,7 +55,10 @@ import rx.android.schedulers.AndroidSchedulers;
 import rx.schedulers.Schedulers;
 
 /**
- *
+ * 聊天界面：
+ * 发送语音、文件、图片这三个文件类型的消息需要改成自己的方法，不使用Smack提供的方法，原理如同群聊
+ * 界面的发送语音过程。最终发送所有文件类型的消息都转变成发送普通消息，但是文件类型的消息的内容是文件在
+ * 自己服务器的存储地址，发送过去之后，由对方根据url解析下载文件
  * Created by ${R.js} on 2017/12/19.
  */
 
@@ -81,13 +84,15 @@ public class ChatActivity extends AppCompatActivity implements ChatManagerListen
     private ChatAdapter adapter;
     // 文件监听接收类，只支持单聊，群聊不支持
     private FileTransferManager fileTransferManager;
+    // OpenFire接收消息提醒的扩展
+    private static final String EXTENSION = "http://jabber.org/protocol/chatstates";
     // 接收消息
     private static final int MESSAGE_RECEIVE = 0;
     // 刷新UI
     private static final int MESSAGE_REFRESH = 1;
-    // 对方正在输入......
+    // 对方正在输入...
     private static final int MESSAGE_COMPOSING = 2;
-    // 对方停止输入......
+    // 对方停止输入...
     private static final int MESSAGE_PAUSED = 3;
 
     private final Handler handler = new Handler() {
@@ -99,7 +104,6 @@ public class ChatActivity extends AppCompatActivity implements ChatManagerListen
                     adapter.notifyDataSetChanged();
                     break;
                 case MESSAGE_REFRESH:
-                    Logger.e("没走啊");
                     adapter.notifyDataSetChanged();
                     break;
                 case MESSAGE_COMPOSING:
@@ -385,7 +389,7 @@ public class ChatActivity extends AppCompatActivity implements ChatManagerListen
     public void processMessage(Chat chat, Message message) {
         Logger.e("接收到消息：" + message.toString());
         // 1.收到输入状态
-        final ExtensionElement extension = message.getExtension("http://jabber.org/protocol/chatstates");
+        final ExtensionElement extension = message.getExtension(EXTENSION);
         if (extension != null) {
             Logger.e("extension = " + extension.getElementName());
         }
@@ -400,7 +404,7 @@ public class ChatActivity extends AppCompatActivity implements ChatManagerListen
             handler.sendEmptyMessage(MESSAGE_COMPOSING);
         } else if (extension.getElementName().equals("paused")) { // 对方暂停输入
             handler.sendEmptyMessage(MESSAGE_PAUSED);
-        } else if (extension.getElementName().equals("active")) { // 对方点击发送消息
+        } else if (extension.getElementName().equals("active")) { // 对方点击发送消息（现在这里一直为null）
             final MyMessage myMessage = new Gson().fromJson(message.getBody(), MyMessage.class);
             if (myMessage != null) {
                 messageList.add(myMessage);
@@ -426,7 +430,6 @@ public class ChatActivity extends AppCompatActivity implements ChatManagerListen
                 .subscribe(new Subscriber<ServletData>() {
                     @Override
                     public void onCompleted() {}
-
                     @Override
                     public void onError(Throwable e) {
                         Logger.e("添加消息异常：" + e.toString());
@@ -451,7 +454,7 @@ public class ChatActivity extends AppCompatActivity implements ChatManagerListen
         final MyMessage localMessage = new MyMessage(currentUser, jid, content,
                 DateUtils.newDate(), MyMessage.OprationType.Send.getType(),
                 recordFile.getPath(), duration);
-        Logger.e("绝对路径：" + recordFile.getAbsolutePath());
+        Logger.e("语音保存路径：" + recordFile.getAbsolutePath());
 
         messageList.add(localMessage);
         adapter.notifyDataSetChanged();
@@ -507,12 +510,10 @@ public class ChatActivity extends AppCompatActivity implements ChatManagerListen
             }
             // 3.判断文件是否下载成功:complete--下载成功，其他为失败
             if (accept.getStatus() == FileTransfer.Status.complete) {
-                Logger.e("下载完毕");
                 updataMessageState(file, MyMessage.MessageState.Sucess);
                 android.os.Message message = handler.obtainMessage(MESSAGE_RECEIVE, file.getName());
                 handler.sendMessage(message);
             } else {
-                Logger.e("下载为完成");
                 updataMessageState(file, MyMessage.MessageState.Error);
             }
         } catch (Exception e) {
@@ -533,9 +534,6 @@ public class ChatActivity extends AppCompatActivity implements ChatManagerListen
         MyMessage message;
         for (int i = 0; i < count; i++) {
             message = adapter.getItem(i);
-            Logger.e("message.tostring = " + message.toString());
-            Logger.e("file.getName() = " + file.getName() + ", message = " + message.getFileName());
-            Logger.e("fff = " + message.getFileName().contains(file.getName()));
             if (message.getFileName().contains(file.getName())) {
                 // 更新消息的绝对路径（之前只是）
                 message.setFileName(file.getPath());

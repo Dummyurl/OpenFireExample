@@ -1,8 +1,10 @@
 package com.jj.investigation.openfire.utils;
 
+import android.app.Activity;
 import android.content.Context;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
+import android.util.DisplayMetrics;
 import android.view.View;
 import android.view.inputmethod.InputMethodManager;
 
@@ -68,7 +70,9 @@ public class Utils {
         return false;
     }
 
-    // 判断是否是WIFI环境
+    /**
+     * 判断是否是WIFI环境
+     */
     public static boolean isWifiConnected(Context context) {
         ConnectivityManager connectivityManager = (ConnectivityManager) context
                 .getSystemService(Context.CONNECTIVITY_SERVICE);
@@ -81,8 +85,8 @@ public class Utils {
     }
 
 
-    /***
-     * 此方法只是关闭软键盘
+    /**
+     * 隐藏软键盘
      */
     public static void hintKbTwo(Context context, View view) {
 
@@ -96,8 +100,26 @@ public class Utils {
      * 把一个数转成保留两位小数的数
      */
     public static String doubFormat2(Object object) {
-        DecimalFormat format = new DecimalFormat("######0.00");
-        String number = format.format(object);
-        return number;
+        return new DecimalFormat("######0.00").format(object);
+    }
+
+    /**
+     * 获取手机屏幕的宽度
+     */
+    public static int getScreenWidth(Context context) {
+        return getDisplayMetrics(context).widthPixels;
+    }
+
+    /**
+     * 获取手机屏幕的高度
+     */
+    public static int getScreenHeight(Context context) {
+        return getDisplayMetrics(context).heightPixels;
+    }
+
+    private static DisplayMetrics getDisplayMetrics(Context context) {
+        DisplayMetrics dm = new DisplayMetrics();
+        ((Activity) context).getWindowManager().getDefaultDisplay().getMetrics(dm);
+        return dm;
     }
 }
