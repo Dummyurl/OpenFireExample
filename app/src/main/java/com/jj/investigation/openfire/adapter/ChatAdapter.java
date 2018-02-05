@@ -22,7 +22,7 @@ import com.jj.investigation.openfire.utils.BitmapUtils;
 import com.jj.investigation.openfire.utils.Logger;
 import com.jj.investigation.openfire.utils.ToastUtils;
 import com.jj.investigation.openfire.utils.Utils;
-import com.jj.investigation.openfire.view.CircleImageView;
+import com.jj.investigation.openfire.view.other.CircleImageView;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -96,19 +96,24 @@ public class ChatAdapter extends BaseAdapter {
         final MyMessage message = getItem(position);
         if (message == null) return -1;
         if (message.getMessageType() == MyMessage.MessageType.Text.getType()) {
-            return message.getOprationType() == MyMessage.OprationType.Send.getType() ? MESSAGE_TYPE_TXT_SENT : MESSAGE_TYPE_TXT_RECE;
+            return message.getOprationType() == MyMessage.OprationType.Send.getType() ?
+                    MESSAGE_TYPE_TXT_SENT : MESSAGE_TYPE_TXT_RECE;
         }
         if (message.getMessageType() == MyMessage.MessageType.Voice.getType()) {
-            return message.getOprationType() == MyMessage.OprationType.Send.getType() ? MESSAGE_TYPE_VOICE_SENT : MESSAGE_TYPE_VOICE_RECE;
+            return message.getOprationType() == MyMessage.OprationType.Send.getType() ?
+                    MESSAGE_TYPE_VOICE_SENT : MESSAGE_TYPE_VOICE_RECE;
         }
         if (message.getMessageType() == MyMessage.MessageType.Image.getType()) {
-            return message.getOprationType() == MyMessage.OprationType.Send.getType() ? MESSAGE_TYPE_IMAGE_SENT : MESSAGE_TYPE_IMAGE_RECE;
+            return message.getOprationType() == MyMessage.OprationType.Send.getType() ?
+                    MESSAGE_TYPE_IMAGE_SENT : MESSAGE_TYPE_IMAGE_RECE;
         }
         if (message.getMessageType() == MyMessage.MessageType.File.getType()) {
-            return message.getOprationType() == MyMessage.OprationType.Send.getType() ? MESSAGE_TYPE_FILE_SENT : MESSAGE_TYPE_FILE_RECE;
+            return message.getOprationType() == MyMessage.OprationType.Send.getType() ?
+                    MESSAGE_TYPE_FILE_SENT : MESSAGE_TYPE_FILE_RECE;
         }
         if (message.getMessageType() == MyMessage.MessageType.Location.getType()) {
-            return message.getOprationType() == MyMessage.OprationType.Send.getType() ? MESSAGE_TYPE_LOCATION_SENT : MESSAGE_TYPE_LOCATION_RECE;
+            return message.getOprationType() == MyMessage.OprationType.Send.getType() ?
+                    MESSAGE_TYPE_LOCATION_SENT : MESSAGE_TYPE_LOCATION_RECE;
         }
         return -1;
     }
@@ -138,7 +143,7 @@ public class ChatAdapter extends BaseAdapter {
                 convertView = inflater.inflate(R.layout.item_chat_file_rece, parent, false);
             } else if (getItemViewType(position) == MESSAGE_TYPE_FILE_SENT) {
                 convertView = inflater.inflate(R.layout.item_chat_file_sent, parent, false);
-            } else if (getItemViewType(position) == MESSAGE_TYPE_LOCATION_RECE) { // 文件
+            } else if (getItemViewType(position) == MESSAGE_TYPE_LOCATION_RECE) { // 地理位置
                 convertView = inflater.inflate(R.layout.item_chat_location_rece, parent, false);
             } else if (getItemViewType(position) == MESSAGE_TYPE_LOCATION_SENT) {
                 convertView = inflater.inflate(R.layout.item_chat_location_sent, parent, false);
@@ -209,8 +214,8 @@ public class ChatAdapter extends BaseAdapter {
                 @Override
                 public void onClick(View v) {
                     final Intent intent = new Intent(context, JSBaiDuMapActivity.class);
-                    if (!Utils.isNull(message.getLatitude()) && ! Utils.isNull(message.getLongitude()))
-                    intent.putExtra("latitude", Double.valueOf(message.getLatitude()));
+                    if (!Utils.isNull(message.getLatitude()) && !Utils.isNull(message.getLongitude()))
+                        intent.putExtra("latitude", Double.valueOf(message.getLatitude()));
                     intent.putExtra("longitude", Double.valueOf(message.getLongitude()));
                     intent.putExtra("address", message.getAddress());
                     intent.putExtra("send", false);

@@ -16,7 +16,7 @@ import com.jj.investigation.openfire.smack.XmppManager;
 import com.jj.investigation.openfire.utils.Logger;
 import com.jj.investigation.openfire.utils.ToastUtils;
 import com.jj.investigation.openfire.utils.Utils;
-import com.jj.investigation.openfire.view.LoadingDialog;
+import com.jj.investigation.openfire.view.other.LoadingDialog;
 
 import org.jivesoftware.smack.tcp.XMPPTCPConnection;
 import org.jxmpp.util.XmppStringUtils;

@@ -13,8 +13,8 @@ import com.jj.investigation.openfire.bean.ServletData;
 import com.jj.investigation.openfire.retrofit.RetrofitUtil;
 import com.jj.investigation.openfire.smack.XmppManager;
 import com.jj.investigation.openfire.utils.ToastUtils;
-import com.jj.investigation.openfire.view.AutoEditText;
-import com.jj.investigation.openfire.view.LoadingDialog;
+import com.jj.investigation.openfire.view.other.AutoEditText;
+import com.jj.investigation.openfire.view.other.LoadingDialog;
 
 import org.jivesoftware.smack.tcp.XMPPTCPConnection;
 import org.jivesoftware.smackx.iqregister.AccountManager;

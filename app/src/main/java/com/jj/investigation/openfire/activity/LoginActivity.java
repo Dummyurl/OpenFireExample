@@ -17,8 +17,8 @@ import com.jj.investigation.openfire.utils.Constants;
 import com.jj.investigation.openfire.utils.Logger;
 import com.jj.investigation.openfire.utils.ShareValue;
 import com.jj.investigation.openfire.utils.ToastUtils;
-import com.jj.investigation.openfire.view.AutoEditText;
-import com.jj.investigation.openfire.view.LoadingDialog;
+import com.jj.investigation.openfire.view.other.AutoEditText;
+import com.jj.investigation.openfire.view.other.LoadingDialog;
 
 import org.jivesoftware.smack.packet.Presence;
 import org.jivesoftware.smack.tcp.XMPPTCPConnection;

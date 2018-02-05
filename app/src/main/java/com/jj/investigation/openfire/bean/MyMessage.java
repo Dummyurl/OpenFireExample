@@ -62,10 +62,10 @@ public class MyMessage {
      * 消息的发送状态
      */
     public enum MessageState {
-        // 发送成功
-        Sucess(0),
         // 发送中
-        Progress(1),
+        Progress(0),
+        // 发送成功
+        Sucess(1),
         // 发送失败
         Error(2);
         private int type;
@@ -79,7 +79,16 @@ public class MyMessage {
         }
     }
 
-
+    // 用户名
+    private String userName;
+    // 头像
+    private String userImg;
+    // 昵称
+    private String nickeName;
+    // 自己平台ID
+    private String userId;
+    // OpenFireID
+    private String userJid;
     // 发送者
     private String send;
     // 接收者
@@ -92,8 +101,8 @@ public class MyMessage {
     private int oprationType = OprationType.Send.getType();
     // 消息的类型：文本、语音......
     private int messageType = MessageType.Text.getType();
-    // 消息的状态
-    private int messageState;
+    // 消息的状态:发送中、成功、失败
+    private int messageState = MessageState.Progress.getType();
     // 发送文件的文件名称(其实后来这个当做文件的url了，不管是本地的url还是网路的url，因为做demo图简单，以后要要区分开来)
     private String fileName;
     // 网络的url：也可以当做本地的用
@@ -121,7 +130,6 @@ public class MyMessage {
         this.oprationType = oprationType;
         this.messageType = MessageType.Text.getType();
     }
-
 
 
     /**
@@ -281,10 +289,55 @@ public class MyMessage {
         this.address = address;
     }
 
+    public String getUserName() {
+        return userName;
+    }
+
+    public void setUserName(String userName) {
+        this.userName = userName;
+    }
+
+    public String getUserImg() {
+        return userImg;
+    }
+
+    public void setUserImg(String userImg) {
+        this.userImg = userImg;
+    }
+
+    public String getNickeName() {
+        return nickeName;
+    }
+
+    public void setNickeName(String nickeName) {
+        this.nickeName = nickeName;
+    }
+
+    public String getUserId() {
+        return userId;
+    }
+
+    public void setUserId(String userId) {
+        this.userId = userId;
+    }
+
+    public String getUserJid() {
+        return userJid;
+    }
+
+    public void setUserJid(String userJid) {
+        this.userJid = userJid;
+    }
+
     @Override
     public String toString() {
         return "MyMessage{" +
-                "send='" + send + '\'' +
+                "userName='" + userName + '\'' +
+                ", userImg='" + userImg + '\'' +
+                ", nickeName='" + nickeName + '\'' +
+                ", userId='" + userId + '\'' +
+                ", userJid='" + userJid + '\'' +
+                ", send='" + send + '\'' +
                 ", receiver='" + receiver + '\'' +
                 ", content='" + content + '\'' +
                 ", data='" + data + '\'' +

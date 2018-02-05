@@ -1,4 +1,4 @@
-package com.jj.investigation.openfire.view;
+package com.jj.investigation.openfire.view.other;
 
 import android.Manifest;
 import android.app.Activity;

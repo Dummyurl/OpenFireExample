@@ -1,4 +1,4 @@
-package com.jj.investigation.openfire.view;
+package com.jj.investigation.openfire.view.other;
 
 import android.content.Context;
 import android.graphics.drawable.Drawable;

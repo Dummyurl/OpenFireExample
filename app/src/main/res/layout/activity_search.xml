@@ -16,7 +16,7 @@
         android:paddingLeft="10dp"
         android:paddingRight="10dp" >
 
-        <com.jj.investigation.openfire.view.AutoEditText
+        <com.jj.investigation.openfire.view.other.AutoEditText
             android:id="@+id/et_search"
             android:layout_width="0dip"
             android:layout_height="35dp"

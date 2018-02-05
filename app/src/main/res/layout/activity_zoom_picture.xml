@@ -4,7 +4,7 @@
     android:layout_height="match_parent"
     android:background="@color/black">
 
-    <com.jj.investigation.openfire.view.HackyViewPager
+    <com.jj.investigation.openfire.view.other.HackyViewPager
         android:id="@+id/expanded_image"
         android:layout_width="match_parent"
         android:layout_height="match_parent"

@@ -31,24 +31,34 @@
             android:src="@drawable/head_default" />
 
         <FrameLayout
+            android:id="@+id/fl_chat_item_container"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginLeft="50dp"
+            android:layout_marginLeft="5dp"
             android:layout_toLeftOf="@+id/iv_head_view"
             android:background="@drawable/chatto_bg"
             android:gravity="center_vertical"
             android:paddingBottom="3dp"
             android:paddingRight="13dp"
-            android:paddingTop="3dp">
+            android:paddingTop="3dp" />
 
-            <ImageView
-                android:id="@+id/iv_message_img"
-                android:layout_width="100dp"
-                android:layout_height="100dp"
-                android:scaleType="centerCrop"
-                android:src="@drawable/chat_add_camera_normal"/>
-
-        </FrameLayout>
+        <ImageView
+            android:id="@+id/iv_chat_item_error"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_centerVertical="true"
+            android:layout_toLeftOf="@+id/fl_chat_item_container"
+            android:src="@drawable/js_chat_msg_error"
+            android:visibility="gone"/>
+        
+        <ProgressBar
+            android:id="@+id/pb_chat_item"
+            android:layout_width="25dp"
+            android:layout_height="25dp"
+            android:layout_marginLeft="15dp"
+            android:layout_centerVertical="true"
+            android:layout_toLeftOf="@+id/fl_chat_item_container"
+            android:visibility="gone"/>
 
     </RelativeLayout>
 </RelativeLayout>

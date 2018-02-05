@@ -14,7 +14,7 @@ import android.widget.LinearLayout;
 
 import com.jj.investigation.openfire.R;
 import com.jj.investigation.openfire.impl.ChatTextSendListener;
-import com.jj.investigation.openfire.view.VoiceRecordButton;
+import com.jj.investigation.openfire.view.other.VoiceRecordButton;
 
 import org.jivesoftware.smack.SmackException;
 import org.jivesoftware.smack.chat.Chat;

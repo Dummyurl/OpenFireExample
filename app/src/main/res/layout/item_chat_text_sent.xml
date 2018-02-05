@@ -22,7 +22,7 @@
         android:layout_marginTop="5dp"
         android:background="@color/transparent">
 
-        <com.jj.investigation.openfire.view.CircleImageView
+        <com.jj.investigation.openfire.view.other.CircleImageView
             android:id="@+id/iv_head_view"
             android:layout_width="40dp"
             android:layout_height="40dp"

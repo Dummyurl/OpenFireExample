@@ -16,7 +16,7 @@ import com.jj.investigation.openfire.R;
 import com.jj.investigation.openfire.adapter.SamplePagerAdapter;
 import com.jj.investigation.openfire.utils.PictureSaveUtil;
 import com.jj.investigation.openfire.utils.ToastUtils;
-import com.jj.investigation.openfire.view.HackyViewPager;
+import com.jj.investigation.openfire.view.other.HackyViewPager;
 
 import java.io.BufferedInputStream;
 import java.io.InputStream;

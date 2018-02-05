@@ -14,7 +14,7 @@
         android:layout_marginTop="50dp"
         android:gravity="center">
 
-        <com.jj.investigation.openfire.view.CircleImageView
+        <com.jj.investigation.openfire.view.other.CircleImageView
             android:layout_width="80dp"
             android:layout_height="80dp"
             android:layout_gravity="clip_horizontal"
@@ -43,7 +43,7 @@
             android:layout_marginLeft="8dp"
             android:background="@color/line" />
 
-        <com.jj.investigation.openfire.view.AutoEditText
+        <com.jj.investigation.openfire.view.other.AutoEditText
             android:id="@+id/et_account"
             android:layout_width="fill_parent"
             android:layout_height="fill_parent"
@@ -84,7 +84,7 @@
             android:layout_marginLeft="8dp"
             android:background="@color/line" />
 
-        <com.jj.investigation.openfire.view.AutoEditText
+        <com.jj.investigation.openfire.view.other.AutoEditText
             android:id="@+id/et_pwd"
             android:layout_width="fill_parent"
             android:layout_height="fill_parent"

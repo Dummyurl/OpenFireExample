@@ -29,7 +29,7 @@ import com.jj.investigation.openfire.utils.GsonUtils;
 import com.jj.investigation.openfire.utils.Logger;
 import com.jj.investigation.openfire.utils.ToastUtils;
 import com.jj.investigation.openfire.utils.Utils;
-import com.jj.investigation.openfire.view.VoiceRecordButton;
+import com.jj.investigation.openfire.view.other.VoiceRecordButton;
 
 import org.jivesoftware.smack.MessageListener;
 import org.jivesoftware.smack.packet.Message;

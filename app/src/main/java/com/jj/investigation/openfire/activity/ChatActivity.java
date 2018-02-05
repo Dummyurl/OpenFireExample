@@ -27,8 +27,8 @@ import com.jj.investigation.openfire.utils.FileManager;
 import com.jj.investigation.openfire.utils.Logger;
 import com.jj.investigation.openfire.utils.ToastUtils;
 import com.jj.investigation.openfire.utils.Utils;
-import com.jj.investigation.openfire.view.VoiceRecordButton;
 import com.jj.investigation.openfire.view.chatbottom.JSChatBottomView;
+import com.jj.investigation.openfire.view.other.VoiceRecordButton;
 import com.yanzhenjie.album.AlbumFile;
 
 import org.jivesoftware.smack.chat.Chat;
@@ -187,7 +187,6 @@ public class ChatActivity extends AppCompatActivity implements ChatManagerListen
         jschat_bottom_view.setChatPictureSelectedListener(new ChatPictureSelectedListener() {
             @Override
             public void pictureSelected(ArrayList<AlbumFile> albumFiles) {
-                ToastUtils.showShortToastSafe("选择了图片：" + albumFiles.get(0).getName());
                 sendImg(albumFiles);
             }
         });
@@ -270,9 +269,10 @@ public class ChatActivity extends AppCompatActivity implements ChatManagerListen
      * 发送文本消息
      */
     private void sendTxt(String content) {
+        MyMessage localMessage = null;
         try {
             // 1.发送消息(该消息只用来在本地显示)
-            final MyMessage localMessage = new MyMessage(currentUser, jid, content,
+            localMessage = new MyMessage(currentUser, jid, content,
                     DateUtils.newDate(), MyMessage.OprationType.Send.getType());
 
             messageList.add(localMessage);
@@ -411,6 +411,7 @@ public class ChatActivity extends AppCompatActivity implements ChatManagerListen
                 handler.sendEmptyMessage(MESSAGE_RECEIVE);
             }
         } else { // 自己的消息
+            Logger.e("这里应该永远都不走");
             android.os.Message obtainMessage = handler.obtainMessage(
                     MESSAGE_RECEIVE, message.getBody());
             handler.sendMessage(obtainMessage);
