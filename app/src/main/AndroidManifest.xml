@@ -82,6 +82,10 @@
             android:name=".activity.JSBaiDuMapActivity"
             android:screenOrientation="portrait"
             android:theme="@style/Theme.AppCompat.Light.NoActionBar" />
+        <activity
+            android:name=".activity.CustomeViewActivity"
+            android:screenOrientation="portrait"
+            android:theme="@style/Theme.AppCompat.Light.NoActionBar" />
         <!--<activity
             android:name=".activity.RichEditorActivity"
             android:screenOrientation="portrait"

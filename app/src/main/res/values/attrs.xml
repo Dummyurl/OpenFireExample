@@ -6,8 +6,8 @@
         <attr name="headerHeight" format="dimension" />
         <attr name="headerVisibleHeight" format="dimension" />
     </declare-styleable>
-    
-    
+
+
     <declare-styleable name="CircleImageView">
         <attr name="shape" format="integer">
             <enum name="circle" value="1" />
@@ -16,8 +16,8 @@
         </attr>
         <attr name="svg_raw_resource" format="reference" />
     </declare-styleable>
-    
-    
+
+
     <declare-styleable name="expandable_selector">
         <attr name="hide_background_if_collapsed" format="boolean" />
         <attr name="animation_duration" format="integer" />
@@ -28,5 +28,38 @@
     </declare-styleable>
 
     <attr name="expandableItemStyle" />
+
+    <!-- 自定义TextView -->
+    <declare-styleable name="MyTextView">
+        <attr name="js_text" format="string" />
+        <attr name="js_text_color" format="color" />
+        <attr name="js_text_size" format="dimension" />
+        <attr name="js_max_lines" format="integer" />
+        <attr name="js_max_length" format="integer" />
+        <attr name="jsInputType">
+            <enum name="number" value="1" />
+            <enum name="text" value="2" />
+            <enum name="password" value="3" />
+        </attr>
+    </declare-styleable>
+
+
+    <!-- QQ步数 -->
+    <declare-styleable name="QQStepView">
+        <attr name="leftColor" format="color" />
+        <attr name="rightColor" format="color" />
+        <attr name="circleBorder" format="dimension" />
+        <attr name="stepTextColor" format="color" />
+        <attr name="stepTextSize" format="dimension" />
+        <attr name="stepText" format="string" />
+    </declare-styleable>
+
+
+    <!-- 字体随手势滑动颜色有渐变的效果 -->
+    <declare-styleable name="ColorTextView">
+        <attr name="orginal_color" format="color" />
+        <attr name="change_color" format="color" />
+    </declare-styleable>
+
 
 </resources>

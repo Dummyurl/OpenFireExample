@@ -53,6 +53,11 @@ public class LoginActivity extends AppCompatActivity {
         et_password = (AutoEditText) findViewById(R.id.et_pwd);
     }
 
+    public void customeView(View v) {
+        startActivity(new Intent(this, CustomeViewActivity.class));
+    }
+
+
     /**
      * 登录的点击事件
      */

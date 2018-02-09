@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    xmlns:js="http://schemas.android.com/apk/res-auto"
+    android:orientation="vertical">
+
+    <com.jj.investigation.openfire.view.customview.QQStepView
+        android:id="@+id/stepView"
+        android:layout_width="80dp"
+        android:layout_height="80dp"
+        android:padding="10dp"
+        js:leftColor="@android:color/holo_red_dark"
+        js:rightColor="@color/actionsheet_blue"
+        js:stepTextColor="@color/red_f15353"
+        js:stepTextSize="16sp"
+        android:visibility="gone"/>
+
+    <com.jj.investigation.openfire.view.customview.ColorTextView
+        android:id="@+id/color_text_view"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginLeft="10dp"
+        js:orginal_color="@color/black"
+        js:change_color="@color/red_f15353"
+        android:text="你好啊"/>
+
+</LinearLayout>
