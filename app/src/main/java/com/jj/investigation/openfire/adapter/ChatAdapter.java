@@ -157,6 +157,7 @@ public class ChatAdapter extends BaseAdapter {
         }
 
         final MyMessage message = getItem(position);
+        Logger.e("消息信息：" + message.toString());
         // 设置布局的内容
         if (message.getMessageType() == MyMessage.MessageType.Text.getType()) { // 文本
             holder.tv_message_text.setText(message.getContent());
@@ -167,7 +168,7 @@ public class ChatAdapter extends BaseAdapter {
             holder.layout_voice.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
-
+                    Logger.e("语音下载状态：" + message.getMessageState());
                     if (message.getMessageState() == MyMessage.MessageState.Sucess.getType()) {
                         final File file = new File(message.getFileName());
                         Logger.e("exists = " + file.exists());

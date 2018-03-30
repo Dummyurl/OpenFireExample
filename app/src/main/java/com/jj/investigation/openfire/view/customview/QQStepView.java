@@ -1,5 +1,6 @@
 package com.jj.investigation.openfire.view.customview;
 
+import android.annotation.SuppressLint;
 import android.content.Context;
 import android.content.res.TypedArray;
 import android.graphics.Canvas;
@@ -108,14 +109,18 @@ public class QQStepView extends View {
         canvas.save();
 
         // 1.画右侧大圆弧
-        final RectF rectRight = new RectF(borderWidth / 2, borderWidth / 2, getWidth() - borderWidth / 2, getHeight());
+        @SuppressLint("DrawAllocation")
+        final RectF rectRight = new RectF(borderWidth / 2, borderWidth / 2,
+                getWidth() - borderWidth / 2, getHeight());
         canvas.drawArc(rectRight, 135, 270, false, rightPaint);
 
         // 2.画左侧小圆弧
         if (currentSteps == 0) return;
         if (Utils.isNull(text)) return;
         float progress = (float) currentSteps / maxSteps;
-        final RectF rectLeft = new RectF(borderWidth / 2, borderWidth / 2, getWidth() - borderWidth / 2, getHeight());
+        @SuppressLint("DrawAllocation")
+        final RectF rectLeft = new RectF(borderWidth / 2, borderWidth / 2,
+                getWidth() - borderWidth / 2, getHeight());
         canvas.drawArc(rectLeft, 135, 270 * progress, false, leftPaint);
 
         // 3.画圆内文字
@@ -145,5 +150,4 @@ public class QQStepView extends View {
         // 只要当前步数发生改变，就刷新，即调用onDraw方法
         invalidate();
     }
-
 }

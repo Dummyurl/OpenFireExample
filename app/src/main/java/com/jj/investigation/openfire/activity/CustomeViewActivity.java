@@ -52,4 +52,5 @@ public class CustomeViewActivity extends AppCompatActivity {
         });
         valueAnimator.start();
     }
+
 }

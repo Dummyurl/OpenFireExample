@@ -212,11 +212,12 @@ public class ChatActivity extends AppCompatActivity implements ChatManagerListen
         final MyMessage localMessage = new MyMessage(currentUser, jid,
                 DateUtils.newDate(), MyMessage.OprationType.Send.getType(),
                 MyMessage.MessageType.Image.getType(), path);
+        localMessage.setMessageState(MyMessage.MessageState.Sucess.getType());
 
         messageList.add(localMessage);
         adapter.notifyDataSetChanged();
 
-        // 要发送的消息(语音)，发送的消息需要别人来接收，所以发送时OprationType的值应该为Receiver而不是send
+        // 要发送的消息，发送的消息需要别人来接收，所以发送时OprationType的值应该为Receiver而不是send
         final MyMessage remoteMessage = new MyMessage(currentUser, jid,
                 DateUtils.newDate(), MyMessage.OprationType.Receiver.getType(),
                 MyMessage.MessageType.Image.getType(), path);
@@ -224,7 +225,6 @@ public class ChatActivity extends AppCompatActivity implements ChatManagerListen
         // 发送消息
         try {
             chat.sendMessage(remoteMessage.toJson());
-            // 发送语音
             final OutgoingFileTransfer outgoingFileTransfer = fileTransferManager.
                     createOutgoingFileTransfer(jid + "/Smack");
             outgoingFileTransfer.sendFile(file, remoteMessage.toJson()); // 后面参数是对文件的描述
@@ -242,10 +242,10 @@ public class ChatActivity extends AppCompatActivity implements ChatManagerListen
         final MyMessage localMessage = new MyMessage(currentUser, jid,
                 DateUtils.newDate(), MyMessage.OprationType.Send.getType(),
                 MyMessage.MessageType.File.getType(), file.getName(), file.getPath(), fileSize);
+        localMessage.setMessageState(MyMessage.MessageState.Sucess.getType());
 
         messageList.add(localMessage);
         adapter.notifyDataSetChanged();
-
 
         // 发送远程消息
         final MyMessage remoteMessage = new MyMessage(currentUser, jid,
@@ -255,10 +255,42 @@ public class ChatActivity extends AppCompatActivity implements ChatManagerListen
         // 发送消息
         try {
             chat.sendMessage(remoteMessage.toJson());
-            // 发送语音
             final OutgoingFileTransfer outgoingFileTransfer = fileTransferManager.
                     createOutgoingFileTransfer(jid + "/Smack");
             outgoingFileTransfer.sendFile(file, remoteMessage.toJson()); // 后面参数是对文件的描述
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    /**
+     * 发送语音消息
+     * @param recordFile 语音文件
+     * @param duration 语音时长
+     */
+    private void sendVoice(File recordFile, long duration) {
+        // 发送消息(该消息只用来在本地显示)
+        final MyMessage localMessage = new MyMessage(currentUser, jid, content,
+                DateUtils.newDate(), MyMessage.OprationType.Send.getType(),
+                recordFile.getPath(), duration);
+        localMessage.setMessageState(MyMessage.MessageState.Sucess.getType());
+        Logger.e("语音保存路径：" + recordFile.getAbsolutePath());
+
+        messageList.add(localMessage);
+        adapter.notifyDataSetChanged();
+
+        // 要发送的消息(语音)，发送的消息需要别人来接收，所以发送时OprationType的值应该为Receiver而不是send
+        final MyMessage remoteMessage = new MyMessage(currentUser, jid, content,
+                DateUtils.newDate(), MyMessage.OprationType.Receiver.getType(),
+                recordFile.getPath(), duration);
+
+        // 发送消息
+        try {
+            chat.sendMessage(remoteMessage.toJson());
+            // 发送语音
+            final OutgoingFileTransfer outgoingFileTransfer = fileTransferManager.
+                    createOutgoingFileTransfer(jid + "/Smack");
+            outgoingFileTransfer.sendFile(recordFile, remoteMessage.toJson()); // 后面参数是对文件的描述
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -451,30 +483,7 @@ public class ChatActivity extends AppCompatActivity implements ChatManagerListen
      */
     @Override
     public void onRecordEnd(File recordFile, long duration) {
-        // 发送消息(该消息只用来在本地显示)
-        final MyMessage localMessage = new MyMessage(currentUser, jid, content,
-                DateUtils.newDate(), MyMessage.OprationType.Send.getType(),
-                recordFile.getPath(), duration);
-        Logger.e("语音保存路径：" + recordFile.getAbsolutePath());
-
-        messageList.add(localMessage);
-        adapter.notifyDataSetChanged();
-
-        // 要发送的消息(语音)，发送的消息需要别人来接收，所以发送时OprationType的值应该为Receiver而不是send
-        final MyMessage remoteMessage = new MyMessage(currentUser, jid, content,
-                DateUtils.newDate(), MyMessage.OprationType.Receiver.getType(),
-                recordFile.getPath(), duration);
-
-        // 发送消息
-        try {
-            chat.sendMessage(remoteMessage.toJson());
-            // 发送语音
-            final OutgoingFileTransfer outgoingFileTransfer = fileTransferManager.
-                    createOutgoingFileTransfer(jid + "/Smack");
-            outgoingFileTransfer.sendFile(recordFile, remoteMessage.toJson()); // 后面参数是对文件的描述
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
+        sendVoice(recordFile, duration);
     }
 
     /**

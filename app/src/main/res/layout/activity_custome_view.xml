@@ -23,6 +23,12 @@
         android:layout_marginLeft="10dp"
         js:orginal_color="@color/black"
         js:change_color="@color/red_f15353"
-        android:text="你好啊"/>
+        android:text="你好啊"
+        android:visibility="gone"/>
+
+    <ImageView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:src="@drawable/aaa"/>
 
 </LinearLayout>

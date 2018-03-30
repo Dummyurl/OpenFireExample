@@ -57,6 +57,8 @@ dependencies {
     compile 'com.artemzin.rxjava:proguard-rules:1.1.1.0'
     // Picasso
     compile 'com.squareup.picasso:picasso:2.3.2'
+    // Glide  两个框架只使用一个即可，加两个是为了看他们的源码而已
+    compile 'com.github.bumptech.glide:glide:3.7.0'
     // Metarial Design
     compile 'com.android.support:design:25.2.0'
     // 图片选择
